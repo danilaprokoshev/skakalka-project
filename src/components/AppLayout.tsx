@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import { useAuth } from '../features/auth/ui/AuthProvider';
 
 const links = [
   { to: '/', label: 'Дашборд' },
@@ -8,11 +9,23 @@ const links = [
 ];
 
 export const AppLayout = (): JSX.Element => {
+  const { user, logout } = useAuth();
+
   return (
     <div className="app-shell">
       <header className="topbar">
-        <h1>Трекер привычек</h1>
-        <p>Стройте последовательность день за днём.</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h1>Трекер привычек</h1>
+            <p>Стройте последовательность день за днём.</p>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>{user?.email}</p>
+            <button type="button" className="ghost" onClick={() => logout()}>
+              Выйти
+            </button>
+          </div>
+        </div>
       </header>
       <nav className="tabs">
         {links.map((link) => (
