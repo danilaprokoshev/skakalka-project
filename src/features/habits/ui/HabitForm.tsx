@@ -8,7 +8,7 @@ interface HabitFormProps {
   onCancel?: () => void;
 }
 
-const defaultColors = ['#6366f1', '#22c55e', '#ef4444', '#f59e0b', '#06b6d4', '#8b5cf6'];
+const defaultColors = ['#818cf8', '#22c55e', '#ef4444', '#f59e0b', '#06b6d4', '#a78bfa'];
 
 export const HabitForm = ({ onSubmit, submitLabel, initialTitle = '', initialColor = defaultColors[0], onCancel }: HabitFormProps): JSX.Element => {
   const [title, setTitle] = useState(initialTitle);
