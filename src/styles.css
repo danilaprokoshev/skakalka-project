@@ -1,0 +1,252 @@
+:root {
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f8fafc;
+}
+
+.app-shell {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.topbar {
+  margin-bottom: 1rem;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.topbar p {
+  margin: 0.4rem 0 0;
+  color: #475569;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tab {
+  text-decoration: none;
+  color: #334155;
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  background: #e2e8f0;
+}
+
+.tab.active {
+  background: #0f172a;
+  color: #fff;
+}
+
+.content {
+  display: block;
+}
+
+.stack {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.9rem;
+}
+
+.form input,
+.form textarea,
+label input,
+label textarea,
+select {
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+}
+
+label {
+  display: grid;
+  gap: 0.2rem;
+  color: #334155;
+}
+
+.button-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.button-row.compact {
+  margin-top: 0;
+}
+
+button {
+  border: none;
+  border-radius: 8px;
+  padding: 0.45rem 0.7rem;
+  background: #0f172a;
+  color: #fff;
+  cursor: pointer;
+}
+
+button.ghost {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+button.danger {
+  background: #ef4444;
+}
+
+button.active-status {
+  background: #10b981;
+  color: #fff;
+}
+
+.color-row {
+  display: flex;
+  gap: 0.45rem;
+  margin-top: 0.4rem;
+}
+
+.color-swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 2px solid transparent;
+}
+
+.color-swatch.selected {
+  border-color: #0f172a;
+}
+
+.habit-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.habit-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.pill {
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #334155;
+  font-size: 0.78rem;
+  padding: 0.2rem 0.6rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+}
+
+.metrics {
+  margin: 0.7rem 0 0;
+  padding-left: 1rem;
+  color: #334155;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(40px, 1fr));
+  gap: 0.45rem;
+}
+
+.cell {
+  min-height: 46px;
+  background: #e2e8f0;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: #0f172a;
+}
+
+.cell.done {
+  background: #86efac;
+}
+
+.cell.partial {
+  background: #fde68a;
+}
+
+.cell.missed {
+  background: #fca5a5;
+}
+
+.legend {
+  margin: 0;
+  color: #475569;
+}
+
+.banner {
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #e0f2fe;
+  padding: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.inline-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.inline-row input {
+  width: auto;
+  margin: 0;
+}
+
+.label {
+  margin: 0;
+  color: #334155;
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    padding: 0.7rem;
+  }
+
+  .habit-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .calendar-grid {
+    grid-template-columns: repeat(7, minmax(28px, 1fr));
+  }
+}
