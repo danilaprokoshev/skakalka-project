@@ -145,6 +145,10 @@ button {
   transition: background 0.2s ease, color 0.2s ease;
 }
 
+button:focus {
+  outline: 0.125rem solid var(--focus-outline);
+}
+
 button.ghost {
   background: var(--btn-ghost-bg);
   color: var(--btn-ghost-text);
@@ -153,12 +157,12 @@ button.ghost {
 
 button.danger {
   background: var(--status-missed);
-  color: var(--text-heading);
+  color: var(--btn-primary-text);
 }
 
 button.active-status {
   background: var(--status-done);
-  color: var(--text-heading);
+  color: var(--btn-primary-text);
 }
 
 .color-row {
