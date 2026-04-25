@@ -57,15 +57,15 @@ export const ProgressCalendar = (): JSX.Element => {
       </div>
       <p className="legend">
         <span className="legend-item">
-          <span className="legend-dot legend-dot--done" />
+          <span className="dot done" aria-hidden="true" />
           выполнено
         </span>
         <span className="legend-item">
-          <span className="legend-dot legend-dot--partial" />
+          <span className="dot partial" aria-hidden="true" />
           частично
         </span>
         <span className="legend-item">
-          <span className="legend-dot legend-dot--missed" />
+          <span className="dot missed" aria-hidden="true" />
           пропущено
         </span>
       </p>

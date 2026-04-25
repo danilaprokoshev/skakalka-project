@@ -270,21 +270,15 @@ button.active-status {
   gap: 0.35rem;
 }
 
-.legend-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-}
-
-.legend-dot--done {
+.dot.done {
   background: var(--status-done);
 }
 
-.legend-dot--partial {
+.dot.partial {
   background: var(--status-partial);
 }
 
-.legend-dot--missed {
+.dot.missed {
   background: var(--status-missed);
 }
 
