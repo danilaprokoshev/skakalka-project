@@ -55,7 +55,20 @@ export const ProgressCalendar = (): JSX.Element => {
           );
         })}
       </div>
-      <p className="legend">выполнено = зелёный, частично = жёлтый, пропущено = красный</p>
+      <p className="legend">
+        <span className="legend-item">
+          <span className="legend-dot legend-dot--done" />
+          выполнено
+        </span>
+        <span className="legend-item">
+          <span className="legend-dot legend-dot--partial" />
+          частично
+        </span>
+        <span className="legend-item">
+          <span className="legend-dot legend-dot--missed" />
+          пропущено
+        </span>
+      </p>
     </section>
   );
 };
