@@ -1,7 +1,25 @@
 :root {
+  /* Color palette */
+  --bg-page: #1e1e1e;
+  --bg-card: #2a2a2a;
+  --bg-active: #404040;
+  --border-color: #3a3a3a;
+  --text-heading: #ffffff;
+  --text-body: #b0b0b0;
+  --btn-primary-bg: #f0f0f0;
+  --btn-primary-text: #1e1e1e;
+  --btn-ghost-bg: transparent;
+  --btn-ghost-border: #3a3a3a;
+  --btn-ghost-text: #ffffff;
+  --status-done: #22c55e;
+  --status-partial: #eab308;
+  --status-missed: #ef4444;
+  --focus-outline: #4d65ff;
+
+  color-scheme: dark;
   font-family: 'Geist', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  color: #0f172a;
-  background: #f8fafc;
+  color: var(--text-body);
+  background: var(--bg-page);
 }
 
 * {
@@ -10,7 +28,13 @@
 
 body {
   margin: 0;
-  background: #f8fafc;
+  background: var(--bg-page);
+}
+
+h1,
+h2,
+h3 {
+  color: var(--text-heading);
 }
 
 .app-shell {
@@ -30,7 +54,7 @@ body {
 
 .topbar p {
   margin: 0.4rem 0 0;
-  color: #475569;
+  color: var(--text-body);
 }
 
 .tabs {
@@ -42,15 +66,16 @@ body {
 
 .tab {
   text-decoration: none;
-  color: #334155;
+  color: var(--text-heading);
   padding: 0.5rem 0.9rem;
   border-radius: 8px;
-  background: #e2e8f0;
+  background: var(--bg-active);
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .tab.active {
-  background: #0f172a;
-  color: #fff;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
 }
 
 .content {
@@ -63,10 +88,11 @@ body {
 }
 
 .card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 0.9rem;
+  transition: border-color 0.2s ease;
 }
 
 .form input,
@@ -78,13 +104,24 @@ select {
   margin-top: 0.35rem;
   padding: 0.5rem;
   border-radius: 8px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--border-color);
+  background: var(--bg-page);
+  color: var(--text-heading);
+  transition: border-color 0.2s ease;
+}
+
+.form input:focus,
+.form textarea:focus,
+label input:focus,
+label textarea:focus,
+select:focus {
+  outline: 0.125rem solid var(--focus-outline);
 }
 
 label {
   display: grid;
   gap: 0.2rem;
-  color: #334155;
+  color: var(--text-body);
 }
 
 .button-row {
@@ -102,23 +139,26 @@ button {
   border: none;
   border-radius: 8px;
   padding: 0.45rem 0.7rem;
-  background: #0f172a;
-  color: #fff;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
   cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 button.ghost {
-  background: #e2e8f0;
-  color: #0f172a;
+  background: var(--btn-ghost-bg);
+  color: var(--btn-ghost-text);
+  border: 1px solid var(--btn-ghost-border);
 }
 
 button.danger {
-  background: #ef4444;
+  background: var(--status-missed);
+  color: var(--text-heading);
 }
 
 button.active-status {
-  background: #10b981;
-  color: #fff;
+  background: var(--status-done);
+  color: var(--text-heading);
 }
 
 .color-row {
@@ -132,10 +172,11 @@ button.active-status {
   height: 26px;
   border-radius: 999px;
   border: 2px solid transparent;
+  transition: border-color 0.2s ease;
 }
 
 .color-swatch.selected {
-  border-color: #0f172a;
+  border-color: var(--text-heading);
 }
 
 .habit-row {
@@ -159,8 +200,8 @@ button.active-status {
 
 .pill {
   border-radius: 999px;
-  background: #e2e8f0;
-  color: #334155;
+  background: var(--bg-active);
+  color: var(--text-body);
   font-size: 0.78rem;
   padding: 0.2rem 0.6rem;
 }
@@ -174,7 +215,7 @@ button.active-status {
 .metrics {
   margin: 0.7rem 0 0;
   padding-left: 1rem;
-  color: #334155;
+  color: var(--text-body);
 }
 
 .calendar-grid {
@@ -185,34 +226,40 @@ button.active-status {
 
 .cell {
   min-height: 46px;
-  background: #e2e8f0;
+  background: var(--bg-active);
   border-radius: 8px;
   display: grid;
   place-items: center;
-  color: #0f172a;
+  color: var(--text-heading);
 }
 
 .cell.done {
-  background: #86efac;
+  background: var(--status-done);
 }
 
 .cell.partial {
-  background: #fde68a;
+  background: var(--status-partial);
 }
 
 .cell.missed {
-  background: #fca5a5;
+  background: var(--status-missed);
+}
+
+.cell.done,
+.cell.partial,
+.cell.missed {
+  color: #000000;
 }
 
 .legend {
   margin: 0;
-  color: #475569;
+  color: var(--text-body);
 }
 
 .banner {
   border-radius: 10px;
-  border: 1px solid #cbd5e1;
-  background: #e0f2fe;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
   padding: 0.75rem;
   display: flex;
   justify-content: space-between;
@@ -233,7 +280,7 @@ button.active-status {
 
 .label {
   margin: 0;
-  color: #334155;
+  color: var(--text-body);
 }
 
 @media (max-width: 640px) {
