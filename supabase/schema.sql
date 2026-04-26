@@ -1,5 +1,5 @@
 -- Таблица привычек
-CREATE TABLE habits (
+CREATE TABLE IF NOT EXISTS habits (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE habits (
 );
 
 -- Таблица записей о выполнении привычек
-CREATE TABLE habit_entries (
+CREATE TABLE IF NOT EXISTS habit_entries (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   habit_id UUID NOT NULL REFERENCES habits(id) ON DELETE CASCADE,
@@ -18,10 +18,10 @@ CREATE TABLE habit_entries (
   note TEXT
 );
 
-CREATE UNIQUE INDEX habit_entries_habit_date ON habit_entries (habit_id, date);
+CREATE UNIQUE INDEX IF NOT EXISTS habit_entries_habit_date ON habit_entries (habit_id, date);
 
 -- Таблица напоминаний
-CREATE TABLE reminders (
+CREATE TABLE IF NOT EXISTS reminders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   habit_id UUID NOT NULL REFERENCES habits(id) ON DELETE CASCADE,
@@ -30,14 +30,24 @@ CREATE TABLE reminders (
   days_of_week INTEGER[] NOT NULL DEFAULT ARRAY[1,2,3,4,5,6,0]
 );
 
-CREATE UNIQUE INDEX reminders_habit ON reminders (habit_id);
+CREATE UNIQUE INDEX IF NOT EXISTS reminders_habit ON reminders (habit_id);
 
 -- Row Level Security
 ALTER TABLE habits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE habit_entries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reminders ENABLE ROW LEVEL SECURITY;
 
--- Политики для habits
+-- Grants for authenticated role
+GRANT ALL ON TABLE habits TO authenticated;
+GRANT ALL ON TABLE habit_entries TO authenticated;
+GRANT ALL ON TABLE reminders TO authenticated;
+
+-- Policies for habits (drop first to allow re-running)
+DROP POLICY IF EXISTS "Users can view own habits" ON habits;
+DROP POLICY IF EXISTS "Users can create own habits" ON habits;
+DROP POLICY IF EXISTS "Users can update own habits" ON habits;
+DROP POLICY IF EXISTS "Users can delete own habits" ON habits;
+
 CREATE POLICY "Users can view own habits" ON habits
   FOR SELECT USING (auth.uid() = user_id);
 
@@ -50,7 +60,12 @@ CREATE POLICY "Users can update own habits" ON habits
 CREATE POLICY "Users can delete own habits" ON habits
   FOR DELETE USING (auth.uid() = user_id);
 
--- Политики для habit_entries
+-- Policies for habit_entries
+DROP POLICY IF EXISTS "Users can view own entries" ON habit_entries;
+DROP POLICY IF EXISTS "Users can create own entries" ON habit_entries;
+DROP POLICY IF EXISTS "Users can update own entries" ON habit_entries;
+DROP POLICY IF EXISTS "Users can delete own entries" ON habit_entries;
+
 CREATE POLICY "Users can view own entries" ON habit_entries
   FOR SELECT USING (auth.uid() = user_id);
 
@@ -63,7 +78,12 @@ CREATE POLICY "Users can update own entries" ON habit_entries
 CREATE POLICY "Users can delete own entries" ON habit_entries
   FOR DELETE USING (auth.uid() = user_id);
 
--- Политики для reminders
+-- Policies for reminders
+DROP POLICY IF EXISTS "Users can view own reminders" ON reminders;
+DROP POLICY IF EXISTS "Users can create own reminders" ON reminders;
+DROP POLICY IF EXISTS "Users can update own reminders" ON reminders;
+DROP POLICY IF EXISTS "Users can delete own reminders" ON reminders;
+
 CREATE POLICY "Users can view own reminders" ON reminders
   FOR SELECT USING (auth.uid() = user_id);
 

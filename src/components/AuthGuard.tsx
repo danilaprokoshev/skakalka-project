@@ -8,6 +8,7 @@ export const AuthGuard = (): JSX.Element => {
   const loadUserData = useHabitStore((state) => state.loadUserData);
   const clearData = useHabitStore((state) => state.clearData);
   const storedUserId = useHabitStore((state) => state.userId);
+  const loadError = useHabitStore((state) => state.loadError);
 
   useEffect(() => {
     if (user && user.id !== storedUserId) {
@@ -31,6 +32,19 @@ export const AuthGuard = (): JSX.Element => {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (loadError) {
+    return (
+      <div className="app-shell">
+        <div className="card stack">
+          <p>{loadError}</p>
+          <button type="button" className="primary" onClick={() => loadUserData(user.id)}>
+            Повторить
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return <Outlet />;

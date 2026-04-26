@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { format } from 'date-fns';
+import { useMemo, useState } from 'react';
+import { addDays, format, isToday, subDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { toDayKey } from '../../../lib/date';
 import { HabitStatus } from '../../habits/model/types';
@@ -13,8 +13,11 @@ export const DailyCheckin = (): JSX.Element => {
   const setEntryStatus = useHabitStore((state) => state.setEntryStatus);
   const setEntryNote = useHabitStore((state) => state.setEntryNote);
 
-  const today = useMemo(() => new Date(), []);
-  const dayKey = toDayKey(today);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const dayKey = toDayKey(selectedDate);
+
+  const goBack = () => setSelectedDate((prev) => subDays(prev, 1));
+  const goForward = () => setSelectedDate((prev) => addDays(prev, 1));
 
   if (activeHabits.length === 0) {
     return <p className="card">Создайте хотя бы одну привычку, чтобы начать ежедневный чек-ин.</p>;
@@ -22,7 +25,21 @@ export const DailyCheckin = (): JSX.Element => {
 
   return (
     <section className="stack">
-      <h2>Сегодня: {format(today, 'EEEE, d MMMM', { locale: ru })}</h2>
+      <div className="date-nav">
+        <button type="button" className="ghost date-nav-arrow" onClick={goBack} aria-label="Предыдущий день">
+          ◀
+        </button>
+        <h2>{format(selectedDate, 'EEEE, d MMMM', { locale: ru })}</h2>
+        <button
+          type="button"
+          className="ghost date-nav-arrow"
+          onClick={goForward}
+          disabled={isToday(selectedDate)}
+          aria-label="Следующий день"
+        >
+          ▶
+        </button>
+      </div>
       {activeHabits.map((habit) => {
         const todayEntry = getEntryByHabitAndDay(entries, habit.id, dayKey);
         return (

@@ -37,6 +37,11 @@ export const AppLayout = (): JSX.Element => {
       <main className="content">
         <Outlet />
       </main>
+      <footer className="footer">
+        <a href="#" className="telegram-link" target="_blank" rel="noopener noreferrer">
+          Наш Telegram
+        </a>
+      </footer>
     </div>
   );
 };

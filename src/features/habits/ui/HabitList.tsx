@@ -12,13 +12,25 @@ export const HabitList = (): JSX.Element => {
   const deleteHabit = useHabitStore((state) => state.deleteHabit);
 
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
   const editingHabit = useMemo(() => activeHabits.find((habit) => habit.id === editingId), [activeHabits, editingId]);
 
   return (
     <section className="stack">
       <h2>Создание и управление привычками</h2>
-      <HabitForm onSubmit={createHabit} submitLabel="Добавить привычку" />
+      {error ? <div className="banner">{error}</div> : null}
+      <HabitForm
+        onSubmit={async (title, color) => {
+          try {
+            await createHabit(title, color);
+            setError('');
+          } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Не удалось добавить привычку');
+          }
+        }}
+        submitLabel="Добавить привычку"
+      />
 
       <div className="stack">
         <h3>Активные привычки ({activeHabits.length})</h3>

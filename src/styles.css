@@ -210,6 +210,30 @@ button.active-status {
   padding: 0.2rem 0.6rem;
 }
 
+.date-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+}
+
+.date-nav h2 {
+  margin: 0;
+  text-align: center;
+  min-width: 220px;
+}
+
+.date-nav-arrow {
+  font-size: 1.1rem;
+  padding: 0.4rem 0.6rem;
+  line-height: 1;
+}
+
+.date-nav-arrow:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -307,6 +331,21 @@ button.active-status {
 .label {
   margin: 0;
   color: var(--text-body);
+}
+
+.footer {
+  text-align: center;
+  padding: 1.2rem 0 0.6rem;
+}
+
+.telegram-link {
+  color: var(--text-body);
+  text-decoration: underline;
+  font-size: 0.88rem;
+}
+
+.telegram-link:hover {
+  color: var(--text-heading);
 }
 
 @media (max-width: 640px) {

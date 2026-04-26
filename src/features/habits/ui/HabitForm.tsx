@@ -1,7 +1,7 @@
 import { FormEvent, useState } from 'react';
 
 interface HabitFormProps {
-  onSubmit: (title: string, color: string) => void;
+  onSubmit: (title: string, color: string) => void | Promise<void>;
   initialTitle?: string;
   initialColor?: string;
   submitLabel: string;
@@ -14,14 +14,14 @@ export const HabitForm = ({ onSubmit, submitLabel, initialTitle = '', initialCol
   const [title, setTitle] = useState(initialTitle);
   const [color, setColor] = useState(initialColor);
 
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     const trimmed = title.trim();
     if (!trimmed) {
       return;
     }
 
-    onSubmit(trimmed, color);
+    await onSubmit(trimmed, color);
     setTitle('');
   };
 
