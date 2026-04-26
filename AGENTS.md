@@ -114,6 +114,13 @@ npx -p vercel vercel env add VITE_SUPABASE_ANON_KEY production
 4. Authentication → Providers → Email: ensure Enabled
 5. Authentication → URL Configuration: set Site URL to Vercel domain, add `https://*.vercel.app/**` to Redirect URLs
 
+## Database reset scripts
+
+- `supabase/clear_data.sql` — TRUNCATE all tables (data only, schema unchanged)
+- `supabase/reset_schema.sql` — DROP tables + recreate from `schema.sql` (full reset)
+
+Run in Supabase Dashboard → SQL Editor.
+
 ## Planned work
 
 - Phase B.4: Add `typecheck`, `lint`, `check` npm scripts.

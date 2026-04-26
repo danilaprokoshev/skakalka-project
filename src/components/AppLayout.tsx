@@ -38,8 +38,8 @@ export const AppLayout = (): JSX.Element => {
         <Outlet />
       </main>
       <footer className="footer">
-        <a href="#" className="telegram-link" target="_blank" rel="noopener noreferrer">
-          Наш Telegram
+        <a href="https://t.me/+SU1HMGcX42k0MWY6" className="telegram-link" target="_blank" rel="noopener noreferrer">
+          Вступай в коммьюнити и меняйся вместе с нами
         </a>
       </footer>
     </div>
