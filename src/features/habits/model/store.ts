@@ -3,7 +3,9 @@ import { addDays, differenceInCalendarDays, parseISO, subDays } from 'date-fns';
 import { useMemo } from 'react';
 import { toDayKey } from '../../../lib/date';
 import { supabase } from '../../../lib/supabase';
-import { Habit, HabitEntry, HabitStatus, Reminder } from './types';
+import { Habit, HabitCategory, HabitEntry, HabitStatus, Reminder } from './types';
+
+const ONBOARDING_KEY = 'sk-onboarding-done';
 
 interface HabitStoreState {
   habits: Habit[];
@@ -12,16 +14,20 @@ interface HabitStoreState {
   inAppReminderQueue: string[];
   userId: string | null;
   loadError: string | null;
-  createHabit: (title: string, color: string) => Promise<void>;
-  updateHabit: (habitId: string, title: string, color: string) => Promise<void>;
+  onboardingDone: boolean;
+  createHabit: (title: string, color: string, category?: HabitCategory) => Promise<void>;
+  updateHabit: (habitId: string, title: string, color: string, category?: HabitCategory) => Promise<void>;
   archiveHabit: (habitId: string) => Promise<void>;
   restoreHabit: (habitId: string) => Promise<void>;
   deleteHabit: (habitId: string) => Promise<void>;
-  setEntryStatus: (habitId: string, date: string, status: HabitStatus) => Promise<void>;
+  toggleHabitDone: (habitId: string, date: string) => Promise<void>;
   setEntryNote: (habitId: string, date: string, note: string) => Promise<void>;
   upsertReminder: (reminder: Reminder) => Promise<void>;
   clearInAppReminderQueue: () => void;
   enqueueInAppReminder: (habitId: string) => void;
+  completeOnboarding: () => void;
+  exportAllData: () => string;
+  importAllData: (json: string) => Promise<void>;
   loadUserData: (userId: string) => Promise<void>;
   clearData: () => void;
 }
@@ -48,12 +54,13 @@ export const useHabitStore = create<HabitStoreState>()((set, get) => ({
   inAppReminderQueue: [],
   userId: null,
   loadError: null,
+  onboardingDone: localStorage.getItem(ONBOARDING_KEY) === '1',
 
   loadUserData: async (userId: string) => {
     set({ userId, loadError: null });
 
     const [habitsRes, entriesRes, remindersRes] = await Promise.all([
-      supabase.from('habits').select('id, title, color, created_at, is_archived').eq('user_id', userId),
+      supabase.from('habits').select('id, title, color, category, created_at, is_archived').eq('user_id', userId),
       supabase.from('habit_entries').select('id, habit_id, date, status, note').eq('user_id', userId),
       supabase.from('reminders').select('habit_id, enabled, time, days_of_week').eq('user_id', userId)
     ]);
@@ -75,17 +82,20 @@ export const useHabitStore = create<HabitStoreState>()((set, get) => ({
       id: row.id as string,
       title: row.title as string,
       color: row.color as string,
+      category: (row.category as HabitCategory) ?? undefined,
       createdAt: row.created_at as string,
       isArchived: row.is_archived as boolean
     }));
 
-    const entries: HabitEntry[] = (entriesRes.data ?? []).map((row: Record<string, unknown>) => ({
-      id: row.id as string,
-      habitId: row.habit_id as string,
-      date: row.date as string,
-      status: row.status as HabitStatus,
-      note: (row.note as string) ?? undefined
-    }));
+    const entries: HabitEntry[] = (entriesRes.data ?? [])
+      .filter((row: Record<string, unknown>) => row.status === 'done')
+      .map((row: Record<string, unknown>) => ({
+        id: row.id as string,
+        habitId: row.habit_id as string,
+        date: row.date as string,
+        status: 'done' as HabitStatus,
+        note: (row.note as string) ?? undefined
+      }));
 
     const reminders: Reminder[] = (remindersRes.data ?? []).map((row: Record<string, unknown>) => ({
       habitId: row.habit_id as string,
@@ -101,7 +111,7 @@ export const useHabitStore = create<HabitStoreState>()((set, get) => ({
     set({ habits: [], entries: [], reminders: [], inAppReminderQueue: [], userId: null, loadError: null });
   },
 
-  createHabit: async (title, color) => {
+  createHabit: async (title, color, category) => {
     const userId = get().userId;
     if (!userId) { throw new Error('Пользователь не авторизован'); }
 
@@ -109,7 +119,7 @@ export const useHabitStore = create<HabitStoreState>()((set, get) => ({
     const now = new Date().toISOString();
 
     const { error } = await supabase.from('habits').insert({
-      id: habitId, user_id: userId, title, color, created_at: now, is_archived: false
+      id: habitId, user_id: userId, title, color, category: category ?? null, created_at: now, is_archived: false
     });
 
     if (error) { throw new Error(error.message); }
@@ -123,7 +133,7 @@ export const useHabitStore = create<HabitStoreState>()((set, get) => ({
       days_of_week: reminder.daysOfWeek
     });
 
-    const newHabit: Habit = { id: habitId, title, color, createdAt: now, isArchived: false };
+    const newHabit: Habit = { id: habitId, title, color, category, createdAt: now, isArchived: false };
 
     set((state) => ({
       habits: [...state.habits, newHabit],
@@ -131,16 +141,16 @@ export const useHabitStore = create<HabitStoreState>()((set, get) => ({
     }));
   },
 
-  updateHabit: async (habitId, title, color) => {
+  updateHabit: async (habitId, title, color, category) => {
     const userId = get().userId;
     if (!userId) { return; }
 
     const previous = get().habits.find((h) => h.id === habitId);
     set((state) => ({
-      habits: state.habits.map((habit) => (habit.id === habitId ? { ...habit, title, color } : habit))
+      habits: state.habits.map((habit) => (habit.id === habitId ? { ...habit, title, color, category } : habit))
     }));
 
-    const { error } = await supabase.from('habits').update({ title, color }).eq('id', habitId).eq('user_id', userId);
+    const { error } = await supabase.from('habits').update({ title, color, category: category ?? null }).eq('id', habitId).eq('user_id', userId);
     if (error && previous) {
       set((state) => ({
         habits: state.habits.map((habit) => (habit.id === habitId ? previous : habit))
@@ -206,36 +216,29 @@ export const useHabitStore = create<HabitStoreState>()((set, get) => ({
     }
   },
 
-  setEntryStatus: async (habitId, date, status) => {
+  toggleHabitDone: async (habitId, date) => {
     const userId = get().userId;
     if (!userId) { return; }
 
     const existing = get().entries.find((entry) => entry.habitId === habitId && entry.date === date);
 
     if (existing) {
-      const previousStatus = existing.status;
       set((state) => ({
-        entries: state.entries.map((entry) =>
-          entry.id === existing.id ? { ...entry, status } : entry
-        )
+        entries: state.entries.filter((entry) => entry.id !== existing.id)
       }));
 
-      const { error } = await supabase.from('habit_entries').update({ status }).eq('id', existing.id).eq('user_id', userId);
+      const { error } = await supabase.from('habit_entries').delete().eq('id', existing.id).eq('user_id', userId);
       if (error) {
-        set((state) => ({
-          entries: state.entries.map((entry) =>
-            entry.id === existing.id ? { ...entry, status: previousStatus } : entry
-          )
-        }));
+        set((state) => ({ entries: [...state.entries, existing] }));
       }
       return;
     }
 
     const entryId = id();
-    const newEntry: HabitEntry = { id: entryId, habitId, date, status };
+    const newEntry: HabitEntry = { id: entryId, habitId, date, status: 'done' };
     set((state) => ({ entries: [...state.entries, newEntry] }));
 
-    const { error } = await supabase.from('habit_entries').insert({ id: entryId, user_id: userId, habit_id: habitId, date, status });
+    const { error } = await supabase.from('habit_entries').insert({ id: entryId, user_id: userId, habit_id: habitId, date, status: 'done' });
     if (error) {
       set((state) => ({ entries: state.entries.filter((e) => e.id !== entryId) }));
     }
@@ -263,10 +266,10 @@ export const useHabitStore = create<HabitStoreState>()((set, get) => ({
     }
 
     const entryId = id();
-    const newEntry: HabitEntry = { id: entryId, habitId, date, status: 'partial', note };
+    const newEntry: HabitEntry = { id: entryId, habitId, date, status: 'done', note };
     set((state) => ({ entries: [...state.entries, newEntry] }));
 
-    const { error } = await supabase.from('habit_entries').insert({ id: entryId, user_id: userId, habit_id: habitId, date, status: 'partial', note });
+    const { error } = await supabase.from('habit_entries').insert({ id: entryId, user_id: userId, habit_id: habitId, date, status: 'done', note });
     if (error) {
       set((state) => ({ entries: state.entries.filter((e) => e.id !== entryId) }));
     }
@@ -321,6 +324,67 @@ export const useHabitStore = create<HabitStoreState>()((set, get) => ({
     const queue = get().inAppReminderQueue;
     if (queue.includes(habitId)) { return; }
     set({ inAppReminderQueue: [...queue, habitId] });
+  },
+
+  completeOnboarding: () => {
+    localStorage.setItem(ONBOARDING_KEY, '1');
+    set({ onboardingDone: true });
+  },
+
+  exportAllData: () => {
+    const state = get();
+    const data = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      habits: state.habits,
+      entries: state.entries,
+      reminders: state.reminders,
+    };
+    return JSON.stringify(data, null, 2);
+  },
+
+  importAllData: async (json: string) => {
+    const userId = get().userId;
+    if (!userId) { throw new Error('Пользователь не авторизован'); }
+
+    let data: { version: number; habits: Habit[]; entries: HabitEntry[]; reminders: Reminder[] };
+    try {
+      data = JSON.parse(json);
+    } catch {
+      throw new Error('Неверный формат JSON');
+    }
+
+    if (!data.version || !Array.isArray(data.habits) || !Array.isArray(data.entries) || !Array.isArray(data.reminders)) {
+      throw new Error('Неверная структура данных');
+    }
+
+    await supabase.from('habit_entries').delete().eq('user_id', userId);
+    await supabase.from('reminders').delete().eq('user_id', userId);
+    await supabase.from('habits').delete().eq('user_id', userId);
+
+    for (const h of data.habits) {
+      await supabase.from('habits').insert({
+        id: h.id, user_id: userId, title: h.title, color: h.color,
+        category: (h as unknown as Record<string, unknown>).category ?? null,
+        created_at: h.createdAt, is_archived: h.isArchived,
+      });
+    }
+
+    for (const e of data.entries) {
+      await supabase.from('habit_entries').insert({
+        id: e.id, user_id: userId, habit_id: e.habitId, date: e.date,
+        status: e.status, note: e.note ?? null,
+      });
+    }
+
+    for (const r of data.reminders) {
+      await supabase.from('reminders').insert({
+        user_id: userId, habit_id: r.habitId,
+        enabled: r.enabled, time: r.time, days_of_week: r.daysOfWeek,
+      });
+    }
+
+    await get().loadUserData(userId);
   }
 }));
 

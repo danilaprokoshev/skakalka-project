@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS habits (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   color TEXT NOT NULL,
+  category TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   is_archived BOOLEAN NOT NULL DEFAULT false
 );
@@ -104,3 +105,67 @@ CREATE POLICY "Users can update own reminders" ON reminders
 
 CREATE POLICY "Users can delete own reminders" ON reminders
   FOR DELETE USING (auth.uid() = user_id);
+
+-- ── Phase 2: Trainer Content Platform ──
+
+CREATE TABLE IF NOT EXISTS trainer_profiles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
+  display_name TEXT NOT NULL,
+  bio TEXT,
+  specialization TEXT,
+  photo_url TEXT,
+  is_trainer BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS workouts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  trainer_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT,
+  video_url TEXT NOT NULL,
+  thumbnail_url TEXT,
+  duration_minutes INTEGER,
+  difficulty TEXT CHECK (difficulty IN ('beginner', 'intermediate', 'advanced')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  is_published BOOLEAN NOT NULL DEFAULT true
+);
+
+ALTER TABLE trainer_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE workouts ENABLE ROW LEVEL SECURITY;
+
+GRANT ALL ON TABLE trainer_profiles TO authenticated;
+GRANT ALL ON TABLE workouts TO authenticated;
+
+-- trainer_profiles policies
+DROP POLICY IF EXISTS "Anyone can view trainer profiles" ON trainer_profiles;
+DROP POLICY IF EXISTS "Users can create own trainer profile" ON trainer_profiles;
+DROP POLICY IF EXISTS "Users can update own trainer profile" ON trainer_profiles;
+
+CREATE POLICY "Anyone can view trainer profiles" ON trainer_profiles
+  FOR SELECT USING (true);
+
+CREATE POLICY "Users can create own trainer profile" ON trainer_profiles
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own trainer profile" ON trainer_profiles
+  FOR UPDATE USING (auth.uid() = user_id);
+
+-- workouts policies
+DROP POLICY IF EXISTS "Users can view published workouts" ON workouts;
+DROP POLICY IF EXISTS "Trainer can create workouts" ON workouts;
+DROP POLICY IF EXISTS "Trainer can update workouts" ON workouts;
+DROP POLICY IF EXISTS "Trainer can delete workouts" ON workouts;
+
+CREATE POLICY "Users can view published workouts" ON workouts
+  FOR SELECT USING (is_published = true OR auth.uid() = trainer_id);
+
+CREATE POLICY "Trainer can create workouts" ON workouts
+  FOR INSERT WITH CHECK (auth.uid() = trainer_id);
+
+CREATE POLICY "Trainer can update workouts" ON workouts
+  FOR UPDATE USING (auth.uid() = trainer_id);
+
+CREATE POLICY "Trainer can delete workouts" ON workouts
+  FOR DELETE USING (auth.uid() = trainer_id);

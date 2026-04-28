@@ -2,30 +2,38 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAuth } from '../features/auth/ui/AuthProvider';
 import { useHabitStore } from '../features/habits/model/store';
+import { useWorkoutStore } from '../features/workouts/model/store';
 
 export const AuthGuard = (): JSX.Element => {
   const { user, loading } = useAuth();
-  const loadUserData = useHabitStore((state) => state.loadUserData);
-  const clearData = useHabitStore((state) => state.clearData);
-  const storedUserId = useHabitStore((state) => state.userId);
-  const loadError = useHabitStore((state) => state.loadError);
+  const loadUserData = useHabitStore((s) => s.loadUserData);
+  const clearData = useHabitStore((s) => s.clearData);
+  const storedUserId = useHabitStore((s) => s.userId);
+  const habitError = useHabitStore((s) => s.loadError);
+
+  const loadTrainerProfile = useWorkoutStore((s) => s.loadTrainerProfile);
+  const loadWorkouts = useWorkoutStore((s) => s.loadWorkouts);
+  const clearWorkouts = useWorkoutStore((s) => s.clearWorkouts);
+  const workoutError = useWorkoutStore((s) => s.loadError);
 
   useEffect(() => {
     if (user && user.id !== storedUserId) {
       loadUserData(user.id);
+      loadTrainerProfile(user.id);
+      loadWorkouts(user.id);
     }
-
     if (!user && storedUserId) {
       clearData();
+      clearWorkouts();
     }
-  }, [user, storedUserId, loadUserData, clearData]);
+  }, [user, storedUserId, loadUserData, clearData, loadTrainerProfile, loadWorkouts, clearWorkouts]);
+
+  const loadError = habitError || workoutError;
 
   if (loading) {
     return (
-      <div className="app-shell">
-        <div className="card stack">
-          <p>Загрузка...</p>
-        </div>
+      <div className="auth-page">
+        <p style={{ color: 'var(--text-muted)' }}>Загрузка...</p>
       </div>
     );
   }
@@ -36,10 +44,19 @@ export const AuthGuard = (): JSX.Element => {
 
   if (loadError) {
     return (
-      <div className="app-shell">
-        <div className="card stack">
-          <p>{loadError}</p>
-          <button type="button" className="primary" onClick={() => loadUserData(user.id)}>
+      <div className="auth-page">
+        <div className="error-card">
+          <p className="error-text">{loadError}</p>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              if (user) {
+                loadUserData(user.id);
+                loadTrainerProfile(user.id);
+                loadWorkouts(user.id);
+              }
+            }}
+          >
             Повторить
           </button>
         </div>

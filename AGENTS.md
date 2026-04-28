@@ -121,10 +121,6 @@ npx -p vercel vercel env add VITE_SUPABASE_ANON_KEY production
 
 Run in Supabase Dashboard → SQL Editor.
 
-## Planned work
-
-- Phase B.4: Add `typecheck`, `lint`, `check` npm scripts.
-
 ## What NOT to do
 
 - Don't add a test framework or CSS preprocessor without explicit request.

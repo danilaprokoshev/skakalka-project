@@ -1,10 +1,9 @@
 import { FormEvent, useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/ui/AuthProvider';
 
 export const RegisterPage = (): JSX.Element => {
   const { user, loading, register } = useAuth();
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -12,10 +11,8 @@ export const RegisterPage = (): JSX.Element => {
 
   if (loading) {
     return (
-      <div className="app-shell">
-        <div className="card stack">
-          <p>Загрузка...</p>
-        </div>
+      <div className="auth-page">
+        <p style={{ color: 'var(--text-muted)' }}>Загрузка...</p>
       </div>
     );
   }
@@ -40,57 +37,64 @@ export const RegisterPage = (): JSX.Element => {
 
     try {
       await register(email, password);
-      navigate('/', { replace: true });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Ошибка регистрации');
     }
   };
 
   return (
-    <div className="app-shell">
-      <div style={{ maxWidth: 400, margin: '4rem auto 0' }}>
-        <header className="topbar">
-          <h1>Трекер привычек</h1>
-          <p>Создайте аккаунт</p>
-        </header>
+    <div className="auth-page">
+      <div className="auth-card">
+        <h1 className="auth-brand">Sage Studio</h1>
+        <p className="auth-subtitle">Создайте аккаунт</p>
 
-        <form className="card stack form" onSubmit={handleSubmit}>
-          {error ? <div className="banner">{error}</div> : null}
+        <form onSubmit={handleSubmit}>
+          {error && <div className="auth-error">{error}</div>}
 
-          <label>
-            Email
-            <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
-          </label>
-
-          <label>
-            Пароль
+          <div className="form-group">
+            <label className="form-label">Email</label>
             <input
+              className="form-input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Пароль</label>
+            <input
+              className="form-input"
               type="password"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
             />
-          </label>
+          </div>
 
-          <label>
-            Подтвердите пароль
+          <div className="form-group">
+            <label className="form-label">Подтвердите пароль</label>
             <input
+              className="form-input"
               type="password"
               value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               required
               minLength={6}
             />
-          </label>
+          </div>
 
-          <button type="submit">Зарегистрироваться</button>
-
-          <p style={{ textAlign: 'center', margin: 0 }}>
-            Уже есть аккаунт? <Link to="/login">Войти</Link>
-          </p>
+          <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
+            Зарегистрироваться
+          </button>
         </form>
+
+        <div className="auth-link">
+          Уже есть аккаунт? <Link to="/login">Войти</Link>
+        </div>
       </div>
     </div>
   );
-};
+}

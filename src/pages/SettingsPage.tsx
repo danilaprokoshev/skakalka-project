@@ -1,6 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { requestNotificationPermission, supportsNotifications } from '../features/reminders/lib/notifications';
 import { useActiveHabits, useHabitStore } from '../features/habits/model/store';
+import { useWorkoutStore } from '../features/workouts/model/store';
+import { useAuth } from '../features/auth/ui/AuthProvider';
+import { useTheme } from '../lib/theme';
+import { usePwaInstall } from '../lib/pwa';
 
 const weekdays = [
   { value: 1, label: 'Пн' },
@@ -9,88 +13,438 @@ const weekdays = [
   { value: 4, label: 'Чт' },
   { value: 5, label: 'Пт' },
   { value: 6, label: 'Сб' },
-  { value: 0, label: 'Вс' }
+  { value: 0, label: 'Вс' },
 ];
 
 export const SettingsPage = (): JSX.Element => {
+  const { user } = useAuth();
   const activeHabits = useActiveHabits();
-  const reminders = useHabitStore((state) => state.reminders);
-  const upsertReminder = useHabitStore((state) => state.upsertReminder);
+  const reminders = useHabitStore((s) => s.reminders);
+  const upsertReminder = useHabitStore((s) => s.upsertReminder);
 
-  const reminderMap = useMemo(() => new Map(reminders.map((reminder) => [reminder.habitId, reminder])), [reminders]);
+  const trainerProfile = useWorkoutStore((s) => s.trainerProfile);
+  const upsertTrainerProfile = useWorkoutStore((s) => s.upsertTrainerProfile);
+
+  const [profileForm, setProfileForm] = useState({
+    displayName: trainerProfile?.displayName ?? '',
+    bio: trainerProfile?.bio ?? '',
+    specialization: trainerProfile?.specialization ?? '',
+    photoUrl: trainerProfile?.photoUrl ?? '',
+    isTrainer: trainerProfile?.isTrainer ?? false,
+  });
+  const [profileExpanded, setProfileExpanded] = useState(false);
+
+  const syncProfileForm = () => {
+    const p = useWorkoutStore.getState().trainerProfile;
+    setProfileForm({
+      displayName: p?.displayName ?? '',
+      bio: p?.bio ?? '',
+      specialization: p?.specialization ?? '',
+      photoUrl: p?.photoUrl ?? '',
+      isTrainer: p?.isTrainer ?? false,
+    });
+  };
+
+  const exportAllData = useHabitStore((s) => s.exportAllData);
+  const importAllData = useHabitStore((s) => s.importAllData);
+  const [importError, setImportError] = useState('');
+  const [importSuccess, setImportSuccess] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const { isInstallable, isStandalone, install } = usePwaInstall();
+
+  const reminderMap = useMemo(
+    () => new Map(reminders.map((r) => [r.habitId, r])),
+    [reminders],
+  );
+
+  const handleSaveProfile = async () => {
+    if (!user || !profileForm.displayName.trim()) return;
+    await upsertTrainerProfile({
+      userId: user.id,
+      displayName: profileForm.displayName.trim(),
+      bio: profileForm.bio || undefined,
+      specialization: profileForm.specialization || undefined,
+      photoUrl: profileForm.photoUrl || undefined,
+      isTrainer: profileForm.isTrainer,
+    });
+    setProfileExpanded(false);
+  };
+
+  if (!profileExpanded && !trainerProfile) {
+    setProfileExpanded(true);
+  }
 
   return (
-    <section className="stack">
-      <h2>Настройки и напоминания</h2>
-      <div className="card">
-        <p>Браузерные уведомления: {supportsNotifications() ? 'Поддерживаются' : 'Не поддерживаются'}</p>
-        <button type="button" onClick={() => requestNotificationPermission()}>
-          Запросить разрешение на уведомления
-        </button>
+    <div className="stack-lg">
+      <h2>Настройки</h2>
+
+      {/* Trainer Profile */}
+      <div className="settings-section">
+        <div className="section-header">
+          <h3 className="settings-section-title">Профиль тренера</h3>
+          {trainerProfile && !profileExpanded && (
+            <button
+              className="btn btn-ghost"
+              onClick={() => {
+                syncProfileForm();
+                setProfileExpanded(true);
+              }}
+            >
+              Изменить
+            </button>
+          )}
+        </div>
+
+        {profileExpanded ? (
+          <div className="card">
+            <div className="form-group">
+              <label className="form-label">Имя</label>
+              <input
+                className="form-input"
+                value={profileForm.displayName}
+                onChange={(e) =>
+                  setProfileForm((p) => ({ ...p, displayName: e.target.value }))
+                }
+                placeholder="Ваше имя"
+                maxLength={100}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Специализация</label>
+              <input
+                className="form-input"
+                value={profileForm.specialization}
+                onChange={(e) =>
+                  setProfileForm((p) => ({ ...p, specialization: e.target.value }))
+                }
+                placeholder="Например: Пилатес, йога, функциональный тренинг"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">О себе</label>
+              <textarea
+                className="form-input"
+                rows={3}
+                value={profileForm.bio}
+                onChange={(e) =>
+                  setProfileForm((p) => ({ ...p, bio: e.target.value }))
+                }
+                placeholder="Расскажите о себе и своём подходе..."
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Фото (URL)</label>
+              <input
+                className="form-input"
+                value={profileForm.photoUrl}
+                onChange={(e) =>
+                  setProfileForm((p) => ({ ...p, photoUrl: e.target.value }))
+                }
+                placeholder="https://example.com/photo.jpg"
+              />
+            </div>
+
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                marginBottom: 16,
+                cursor: 'pointer',
+              }}
+            >
+              <div className="toggle">
+                <input
+                  type="checkbox"
+                  checked={profileForm.isTrainer}
+                  onChange={(e) =>
+                    setProfileForm((p) => ({ ...p, isTrainer: e.target.checked }))
+                  }
+                />
+                <span className="toggle-slider" />
+              </div>
+              <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
+                Режим тренера (управление тренировками)
+              </span>
+            </label>
+
+            <div className="button-row">
+              <button className="btn btn-primary" onClick={handleSaveProfile}>
+                Сохранить
+              </button>
+              {trainerProfile && (
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setProfileExpanded(false)}
+                >
+                  Отмена
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          trainerProfile && (
+            <div className="card">
+              {trainerProfile.photoUrl && (
+                <div style={{ textAlign: 'center', marginBottom: 12 }}>
+                  <img
+                    src={trainerProfile.photoUrl}
+                    alt={trainerProfile.displayName}
+                    style={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '2px solid var(--primary)',
+                    }}
+                  />
+                </div>
+              )}
+              <h3 style={{ textAlign: 'center', marginBottom: 4 }}>
+                {trainerProfile.displayName}
+              </h3>
+              {trainerProfile.specialization && (
+                <p
+                  style={{
+                    textAlign: 'center',
+                    color: 'var(--primary)',
+                    fontSize: 13,
+                    marginBottom: 8,
+                  }}
+                >
+                  {trainerProfile.specialization}
+                </p>
+              )}
+              {trainerProfile.bio && (
+                <p
+                  style={{
+                    color: 'var(--text-secondary)',
+                    fontSize: 14,
+                    textAlign: 'center',
+                  }}
+                >
+                  {trainerProfile.bio}
+                </p>
+              )}
+              {trainerProfile.isTrainer && (
+                <p
+                  style={{
+                    textAlign: 'center',
+                    color: 'var(--primary)',
+                    fontSize: 12,
+                    marginTop: 8,
+                  }}
+                >
+                  Режим тренера активен
+                </p>
+              )}
+            </div>
+          )
+        )}
       </div>
 
-      {activeHabits.length === 0 ? <p className="card">Сначала добавьте привычки, чтобы настроить напоминания.</p> : null}
-
-      {activeHabits.map((habit) => {
-        const reminder = reminderMap.get(habit.id) ?? {
-          habitId: habit.id,
-          enabled: false,
-          time: '09:00',
-          daysOfWeek: [1, 2, 3, 4, 5, 6, 0]
-        };
-
-        return (
-          <article key={habit.id} className="card stack">
-            <div className="habit-title-wrap">
-              <span className="dot" style={{ backgroundColor: habit.color }} />
-              <strong>{habit.title}</strong>
-            </div>
-
-            <label className="inline-row">
+      {/* Notifications */}
+      <div className="settings-section">
+        <h3 className="settings-section-title">Уведомления</h3>
+        <div className="card" style={{ marginBottom: 'var(--gap-stack)' }}>
+          <div className="flex-between" style={{ marginBottom: 12 }}>
+            <span>Тема: {theme === 'dark' ? 'Тёмная' : 'Светлая'}</span>
+            <label className="toggle">
               <input
                 type="checkbox"
-                checked={reminder.enabled}
-                onChange={(event) => upsertReminder({ ...reminder, enabled: event.target.checked })}
+                checked={theme === 'light'}
+                onChange={toggleTheme}
               />
-              Включить напоминание
+              <span className="toggle-slider" />
             </label>
+          </div>
+          <p style={{ marginBottom: 12 }}>
+            Браузерные уведомления:{' '}
+            {supportsNotifications() ? 'Поддерживаются' : 'Не поддерживаются'}
+          </p>
+          <button
+            className="btn btn-secondary"
+            onClick={() => requestNotificationPermission()}
+          >
+            Запросить разрешение
+          </button>
+          {isInstallable && (
+            <button
+              className="btn btn-primary"
+              style={{ marginTop: 8 }}
+              onClick={() => install()}
+            >
+              Установить приложение
+            </button>
+          )}
+          {isStandalone && (
+            <p style={{ marginTop: 8, fontSize: 13, color: 'var(--primary)' }}>
+              Приложение установлено ✓
+            </p>
+          )}
+        </div>
+      </div>
 
-            <label>
-              Время напоминания
-              <input
-                type="time"
-                value={reminder.time}
-                onChange={(event) => upsertReminder({ ...reminder, time: event.target.value })}
-              />
-            </label>
+      {/* Reminders */}
+      <div className="settings-section">
+        <h3 className="settings-section-title">Напоминания</h3>
 
-            <div>
-              <p className="label">Дни недели</p>
-              <div className="button-row wrap">
-                {weekdays.map((day) => {
-                  const selected = reminder.daysOfWeek.includes(day.value);
-                  return (
-                    <button
-                      key={day.value}
-                      type="button"
-                      className={selected ? 'active-status' : 'ghost'}
-                      onClick={() => {
-                        const nextDays = selected
-                          ? reminder.daysOfWeek.filter((value) => value !== day.value)
-                          : [...reminder.daysOfWeek, day.value].sort((a, b) => a - b);
+        {activeHabits.length === 0 && (
+          <p style={{ color: 'var(--text-muted)' }}>
+            Сначала добавьте привычки, чтобы настроить напоминания.
+          </p>
+        )}
 
-                        upsertReminder({ ...reminder, daysOfWeek: nextDays });
-                      }}
-                    >
-                      {day.label}
-                    </button>
-                  );
-                })}
+        {activeHabits.map((habit) => {
+          const reminder = reminderMap.get(habit.id) ?? {
+            habitId: habit.id,
+            enabled: false,
+            time: '09:00',
+            daysOfWeek: [1, 2, 3, 4, 5, 6, 0],
+          };
+
+          return (
+            <div key={habit.id} className="reminder-card">
+              <div className="reminder-header">
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: '50%',
+                      backgroundColor: habit.color,
+                      display: 'inline-block',
+                    }}
+                  />
+                  <span className="reminder-title">{habit.title}</span>
+                </span>
+                <label className="toggle">
+                  <input
+                    type="checkbox"
+                    checked={reminder.enabled}
+                    onChange={(e) =>
+                      upsertReminder({ ...reminder, enabled: e.target.checked })
+                    }
+                  />
+                  <span className="toggle-slider" />
+                </label>
               </div>
+
+              {reminder.enabled && (
+                <div className="stack-sm">
+                  <div>
+                    <label className="form-label">Время</label>
+                    <input
+                      type="time"
+                      className="time-input"
+                      value={reminder.time}
+                      onChange={(e) =>
+                        upsertReminder({ ...reminder, time: e.target.value })
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <div className="form-label">Дни недели</div>
+                    <div className="day-toggle-row">
+                      {weekdays.map((day) => {
+                        const active = reminder.daysOfWeek.includes(day.value);
+                        return (
+                          <button
+                            key={day.value}
+                            type="button"
+                            className={`day-btn${active ? ' active' : ''}`}
+                            onClick={() => {
+                              const next = active
+                                ? reminder.daysOfWeek.filter((v) => v !== day.value)
+                                : [...reminder.daysOfWeek, day.value].sort(
+                                    (a, b) => a - b,
+                                  );
+                              upsertReminder({ ...reminder, daysOfWeek: next });
+                            }}
+                          >
+                            {day.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          </article>
-        );
-      })}
-    </section>
+          );
+        })}
+      </div>
+
+      {/* Export / Import */}
+      <div className="settings-section">
+        <h3 className="settings-section-title">Экспорт / Импорт</h3>
+        <div className="card">
+          <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 16 }}>
+            Сохраните все данные в JSON-файл или восстановите из резервной копии.
+            При импорте текущие данные будут заменены.
+          </p>
+
+          {importError && (
+            <div className="auth-error">{importError}</div>
+          )}
+          {importSuccess && (
+            <div className="banner">Данные успешно импортированы</div>
+          )}
+
+          <div className="button-row">
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                const json = exportAllData();
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `sagestudio-backup-${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+            >
+              Экспорт JSON
+            </button>
+            <button
+              className="btn btn-secondary"
+              onClick={() => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.onchange = async (e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0];
+                  if (!file) return;
+                  try {
+                    const text = await file.text();
+                    setImportError('');
+                    setImportSuccess(false);
+                    await importAllData(text);
+                    setImportSuccess(true);
+                    setTimeout(() => setImportSuccess(false), 3000);
+                  } catch (err: unknown) {
+                    setImportError(err instanceof Error ? err.message : 'Ошибка импорта');
+                  }
+                };
+                input.click();
+              }}
+            >
+              Импорт JSON
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
-};
+}

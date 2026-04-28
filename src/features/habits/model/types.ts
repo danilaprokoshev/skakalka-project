@@ -1,9 +1,29 @@
-export type HabitStatus = 'done' | 'partial' | 'missed';
+export type HabitStatus = 'done';
+
+export type HabitCategory = 'fitness' | 'nutrition' | 'sleep' | 'mental' | 'other';
+
+export const CATEGORIES: { value: HabitCategory | ''; label: string; icon: string }[] = [
+  { value: '', label: 'Без категории', icon: '' },
+  { value: 'fitness', label: 'Фитнес', icon: '' },
+  { value: 'nutrition', label: 'Питание', icon: '' },
+  { value: 'sleep', label: 'Сон', icon: '' },
+  { value: 'mental', label: 'Ментальное', icon: '' },
+  { value: 'other', label: 'Другое', icon: '' },
+];
+
+export const CATEGORY_LABELS: Record<HabitCategory, string> = {
+  fitness: 'Фитнес',
+  nutrition: 'Питание',
+  sleep: 'Сон',
+  mental: 'Ментальное',
+  other: 'Другое',
+};
 
 export interface Habit {
   id: string;
   title: string;
   color: string;
+  category?: HabitCategory;
   createdAt: string;
   isArchived: boolean;
 }

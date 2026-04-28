@@ -1,20 +1,17 @@
 import { FormEvent, useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/ui/AuthProvider';
 
 export const LoginPage = (): JSX.Element => {
   const { user, loading, login } = useAuth();
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   if (loading) {
     return (
-      <div className="app-shell">
-        <div className="card stack">
-          <p>Загрузка...</p>
-        </div>
+      <div className="auth-page">
+        <p style={{ color: 'var(--text-muted)' }}>Загрузка...</p>
       </div>
     );
   }
@@ -29,46 +26,52 @@ export const LoginPage = (): JSX.Element => {
 
     try {
       await login(email, password);
-      navigate('/', { replace: true });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Ошибка входа');
     }
   };
 
   return (
-    <div className="app-shell">
-      <div style={{ maxWidth: 400, margin: '4rem auto 0' }}>
-        <header className="topbar">
-          <h1>Трекер привычек</h1>
-          <p>Войдите, чтобы продолжить</p>
-        </header>
+    <div className="auth-page">
+      <div className="auth-card">
+        <h1 className="auth-brand">Sage Studio</h1>
+        <p className="auth-subtitle">Войдите, чтобы продолжить</p>
 
-        <form className="card stack form" onSubmit={handleSubmit}>
-          {error ? <div className="banner">{error}</div> : null}
+        <form onSubmit={handleSubmit}>
+          {error && <div className="auth-error">{error}</div>}
 
-          <label>
-            Email
-            <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
-          </label>
-
-          <label>
-            Пароль
+          <div className="form-group">
+            <label className="form-label">Email</label>
             <input
+              className="form-input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Пароль</label>
+            <input
+              className="form-input"
               type="password"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
             />
-          </label>
+          </div>
 
-          <button type="submit">Войти</button>
-
-          <p style={{ textAlign: 'center', margin: 0 }}>
-            Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
-          </p>
+          <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
+            Войти
+          </button>
         </form>
+
+        <div className="auth-link">
+          Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
+        </div>
       </div>
     </div>
   );
-};
+}
