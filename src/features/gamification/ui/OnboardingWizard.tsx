@@ -41,9 +41,6 @@ export function OnboardingWizard({ onComplete, onAddHabit, hasHabits, hasCheckin
       onAddHabit();
       return;
     }
-    if (step === 2 && !hasCheckinToday) {
-      return;
-    }
     if (isLast) {
       onComplete();
       return;
