@@ -13,7 +13,7 @@ export function AppLayout() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <span className="topbar-brand">Sage Studio</span>
+        <span className="topbar-brand">Puls</span>
         <div className="topbar-right">
           <span className="topbar-user">{user?.email}</span>
           <button className="btn-logout" onClick={logout}>Выйти</button>

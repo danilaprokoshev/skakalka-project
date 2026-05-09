@@ -34,7 +34,7 @@ export const LoginPage = (): JSX.Element => {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1 className="auth-brand">Sage Studio</h1>
+        <h1 className="auth-brand">Puls</h1>
         <p className="auth-subtitle">Войдите, чтобы продолжить</p>
 
         <form onSubmit={handleSubmit}>

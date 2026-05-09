@@ -1,10 +1,13 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { requestNotificationPermission, supportsNotifications } from '../features/reminders/lib/notifications';
 import { useActiveHabits, useHabitStore } from '../features/habits/model/store';
 import { useWorkoutStore } from '../features/workouts/model/store';
 import { useAuth } from '../features/auth/ui/AuthProvider';
 import { useTheme } from '../lib/theme';
 import { usePwaInstall } from '../lib/pwa';
+
+const TELEGRAM_URL = 'https://t.me/Wwork_on_yourself';
 
 const weekdays = [
   { value: 1, label: 'Пн' },
@@ -17,20 +20,20 @@ const weekdays = [
 ];
 
 export const SettingsPage = (): JSX.Element => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const activeHabits = useActiveHabits();
   const reminders = useHabitStore((s) => s.reminders);
   const upsertReminder = useHabitStore((s) => s.upsertReminder);
 
   const trainerProfile = useWorkoutStore((s) => s.trainerProfile);
   const upsertTrainerProfile = useWorkoutStore((s) => s.upsertTrainerProfile);
+  const isTrainer = trainerProfile?.isTrainer === true;
 
   const [profileForm, setProfileForm] = useState({
     displayName: trainerProfile?.displayName ?? '',
     bio: trainerProfile?.bio ?? '',
     specialization: trainerProfile?.specialization ?? '',
     photoUrl: trainerProfile?.photoUrl ?? '',
-    isTrainer: trainerProfile?.isTrainer ?? false,
   });
   const [profileExpanded, setProfileExpanded] = useState(false);
 
@@ -41,7 +44,6 @@ export const SettingsPage = (): JSX.Element => {
       bio: p?.bio ?? '',
       specialization: p?.specialization ?? '',
       photoUrl: p?.photoUrl ?? '',
-      isTrainer: p?.isTrainer ?? false,
     });
   };
 
@@ -65,191 +67,27 @@ export const SettingsPage = (): JSX.Element => {
       bio: profileForm.bio || undefined,
       specialization: profileForm.specialization || undefined,
       photoUrl: profileForm.photoUrl || undefined,
-      isTrainer: profileForm.isTrainer,
+      isTrainer: trainerProfile?.isTrainer ?? false,
     });
     setProfileExpanded(false);
   };
-
-  if (!profileExpanded && !trainerProfile) {
-    setProfileExpanded(true);
-  }
 
   return (
     <div className="stack-lg">
       <h2>Настройки</h2>
 
-      {/* Trainer Profile */}
+      {/* Account */}
       <div className="settings-section">
-        <div className="section-header">
-          <h3 className="settings-section-title">Профиль тренера</h3>
-          {trainerProfile && !profileExpanded && (
-            <button
-              className="btn btn-ghost"
-              onClick={() => {
-                syncProfileForm();
-                setProfileExpanded(true);
-              }}
-            >
-              Изменить
-            </button>
-          )}
-        </div>
+        <h3 className="settings-section-title">Аккаунт</h3>
 
-        {profileExpanded ? (
-          <div className="card">
-            <div className="form-group">
-              <label className="form-label">Имя</label>
-              <input
-                className="form-input"
-                value={profileForm.displayName}
-                onChange={(e) =>
-                  setProfileForm((p) => ({ ...p, displayName: e.target.value }))
-                }
-                placeholder="Ваше имя"
-                maxLength={100}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Специализация</label>
-              <input
-                className="form-input"
-                value={profileForm.specialization}
-                onChange={(e) =>
-                  setProfileForm((p) => ({ ...p, specialization: e.target.value }))
-                }
-                placeholder="Например: Пилатес, йога, функциональный тренинг"
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">О себе</label>
-              <textarea
-                className="form-input"
-                rows={3}
-                value={profileForm.bio}
-                onChange={(e) =>
-                  setProfileForm((p) => ({ ...p, bio: e.target.value }))
-                }
-                placeholder="Расскажите о себе и своём подходе..."
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Фото (URL)</label>
-              <input
-                className="form-input"
-                value={profileForm.photoUrl}
-                onChange={(e) =>
-                  setProfileForm((p) => ({ ...p, photoUrl: e.target.value }))
-                }
-                placeholder="https://example.com/photo.jpg"
-              />
-            </div>
-
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                marginBottom: 16,
-                cursor: 'pointer',
-              }}
-            >
-              <div className="toggle">
-                <input
-                  type="checkbox"
-                  checked={profileForm.isTrainer}
-                  onChange={(e) =>
-                    setProfileForm((p) => ({ ...p, isTrainer: e.target.checked }))
-                  }
-                />
-                <span className="toggle-slider" />
-              </div>
-              <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-                Режим тренера (управление тренировками)
-              </span>
-            </label>
-
-            <div className="button-row">
-              <button className="btn btn-primary" onClick={handleSaveProfile}>
-                Сохранить
-              </button>
-              {trainerProfile && (
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => setProfileExpanded(false)}
-                >
-                  Отмена
-                </button>
-              )}
+        <div className="card" style={{ marginBottom: 'var(--gap-stack)' }}>
+          <div className="form-group" style={{ marginBottom: 16 }}>
+            <label className="form-label">Email</label>
+            <div style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
+              {user?.email ?? '—'}
             </div>
           </div>
-        ) : (
-          trainerProfile && (
-            <div className="card">
-              {trainerProfile.photoUrl && (
-                <div style={{ textAlign: 'center', marginBottom: 12 }}>
-                  <img
-                    src={trainerProfile.photoUrl}
-                    alt={trainerProfile.displayName}
-                    style={{
-                      width: 80,
-                      height: 80,
-                      borderRadius: '50%',
-                      objectFit: 'cover',
-                      border: '2px solid var(--primary)',
-                    }}
-                  />
-                </div>
-              )}
-              <h3 style={{ textAlign: 'center', marginBottom: 4 }}>
-                {trainerProfile.displayName}
-              </h3>
-              {trainerProfile.specialization && (
-                <p
-                  style={{
-                    textAlign: 'center',
-                    color: 'var(--primary)',
-                    fontSize: 13,
-                    marginBottom: 8,
-                  }}
-                >
-                  {trainerProfile.specialization}
-                </p>
-              )}
-              {trainerProfile.bio && (
-                <p
-                  style={{
-                    color: 'var(--text-secondary)',
-                    fontSize: 14,
-                    textAlign: 'center',
-                  }}
-                >
-                  {trainerProfile.bio}
-                </p>
-              )}
-              {trainerProfile.isTrainer && (
-                <p
-                  style={{
-                    textAlign: 'center',
-                    color: 'var(--primary)',
-                    fontSize: 12,
-                    marginTop: 8,
-                  }}
-                >
-                  Режим тренера активен
-                </p>
-              )}
-            </div>
-          )
-        )}
-      </div>
 
-      {/* Notifications */}
-      <div className="settings-section">
-        <h3 className="settings-section-title">Уведомления</h3>
-        <div className="card" style={{ marginBottom: 'var(--gap-stack)' }}>
           <div className="flex-between" style={{ marginBottom: 12 }}>
             <span>Тема: {theme === 'dark' ? 'Тёмная' : 'Светлая'}</span>
             <label className="toggle">
@@ -261,6 +99,7 @@ export const SettingsPage = (): JSX.Element => {
               <span className="toggle-slider" />
             </label>
           </div>
+
           <p style={{ marginBottom: 12 }}>
             Браузерные уведомления:{' '}
             {supportsNotifications() ? 'Поддерживаются' : 'Не поддерживаются'}
@@ -286,6 +125,79 @@ export const SettingsPage = (): JSX.Element => {
             </p>
           )}
         </div>
+
+        <div className="card" style={{ marginBottom: 'var(--gap-stack)' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 16 }}>
+            Сохраните все данные в JSON-файл или восстановите из резервной копии.
+            При импорте текущие данные будут заменены.
+          </p>
+
+          {importError && <div className="auth-error">{importError}</div>}
+          {importSuccess && <div className="banner">Данные успешно импортированы</div>}
+
+          <div className="button-row">
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                const json = exportAllData();
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `sagestudio-backup-${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+            >
+              Экспорт JSON
+            </button>
+            <button
+              className="btn btn-secondary"
+              onClick={() => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.onchange = async (e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0];
+                  if (!file) return;
+                  try {
+                    const text = await file.text();
+                    setImportError('');
+                    setImportSuccess(false);
+                    await importAllData(text);
+                    setImportSuccess(true);
+                    setTimeout(() => setImportSuccess(false), 3000);
+                  } catch (err: unknown) {
+                    setImportError(err instanceof Error ? err.message : 'Ошибка импорта');
+                  }
+                };
+                input.click();
+              }}
+            >
+              Импорт JSON
+            </button>
+          </div>
+        </div>
+
+        <div className="card" style={{ marginBottom: 'var(--gap-stack)' }}>
+          <a
+            href={TELEGRAM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-secondary"
+            style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}
+          >
+            Telegram-канал
+          </a>
+        </div>
+
+        <button
+          className="btn btn-secondary"
+          onClick={logout}
+          style={{ width: '100%' }}
+        >
+          Выйти из аккаунта
+        </button>
       </div>
 
       {/* Reminders */}
@@ -385,66 +297,155 @@ export const SettingsPage = (): JSX.Element => {
         })}
       </div>
 
-      {/* Export / Import */}
-      <div className="settings-section">
-        <h3 className="settings-section-title">Экспорт / Импорт</h3>
-        <div className="card">
-          <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 16 }}>
-            Сохраните все данные в JSON-файл или восстановите из резервной копии.
-            При импорте текущие данные будут заменены.
-          </p>
+      {/* Trainer-only: Content management */}
+      {isTrainer && (
+        <div className="settings-section">
+          <h3 className="settings-section-title">Управление контентом</h3>
 
-          {importError && (
-            <div className="auth-error">{importError}</div>
-          )}
-          {importSuccess && (
-            <div className="banner">Данные успешно импортированы</div>
-          )}
+          <Link
+            to="/workouts"
+            className="card"
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              textDecoration: 'none',
+              color: 'inherit',
+              marginBottom: 'var(--gap-stack)',
+            }}
+          >
+            <span>Управление тренировками</span>
+            <span style={{ color: 'var(--primary)' }}>→</span>
+          </Link>
 
-          <div className="button-row">
-            <button
-              className="btn btn-primary"
-              onClick={() => {
-                const json = exportAllData();
-                const blob = new Blob([json], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `sagestudio-backup-${new Date().toISOString().slice(0, 10)}.json`;
-                a.click();
-                URL.revokeObjectURL(url);
-              }}
-            >
-              Экспорт JSON
-            </button>
-            <button
-              className="btn btn-secondary"
-              onClick={() => {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = '.json';
-                input.onchange = async (e) => {
-                  const file = (e.target as HTMLInputElement).files?.[0];
-                  if (!file) return;
-                  try {
-                    const text = await file.text();
-                    setImportError('');
-                    setImportSuccess(false);
-                    await importAllData(text);
-                    setImportSuccess(true);
-                    setTimeout(() => setImportSuccess(false), 3000);
-                  } catch (err: unknown) {
-                    setImportError(err instanceof Error ? err.message : 'Ошибка импорта');
-                  }
-                };
-                input.click();
-              }}
-            >
-              Импорт JSON
-            </button>
+          <div className="section-header">
+            <h4 style={{ margin: 0 }}>Профиль тренера</h4>
+            {trainerProfile && !profileExpanded && (
+              <button
+                className="btn btn-ghost"
+                onClick={() => {
+                  syncProfileForm();
+                  setProfileExpanded(true);
+                }}
+              >
+                Изменить
+              </button>
+            )}
           </div>
+
+          {profileExpanded || !trainerProfile ? (
+            <div className="card">
+              <div className="form-group">
+                <label className="form-label">Имя</label>
+                <input
+                  className="form-input"
+                  value={profileForm.displayName}
+                  onChange={(e) =>
+                    setProfileForm((p) => ({ ...p, displayName: e.target.value }))
+                  }
+                  placeholder="Ваше имя"
+                  maxLength={100}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Специализация</label>
+                <input
+                  className="form-input"
+                  value={profileForm.specialization}
+                  onChange={(e) =>
+                    setProfileForm((p) => ({ ...p, specialization: e.target.value }))
+                  }
+                  placeholder="Например: Пилатес, йога, функциональный тренинг"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">О себе</label>
+                <textarea
+                  className="form-input"
+                  rows={3}
+                  value={profileForm.bio}
+                  onChange={(e) =>
+                    setProfileForm((p) => ({ ...p, bio: e.target.value }))
+                  }
+                  placeholder="Расскажите о себе и своём подходе..."
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Фото (URL)</label>
+                <input
+                  className="form-input"
+                  value={profileForm.photoUrl}
+                  onChange={(e) =>
+                    setProfileForm((p) => ({ ...p, photoUrl: e.target.value }))
+                  }
+                  placeholder="https://example.com/photo.jpg"
+                />
+              </div>
+
+              <div className="button-row">
+                <button className="btn btn-primary" onClick={handleSaveProfile}>
+                  Сохранить
+                </button>
+                {trainerProfile && (
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => setProfileExpanded(false)}
+                  >
+                    Отмена
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="card">
+              {trainerProfile.photoUrl && (
+                <div style={{ textAlign: 'center', marginBottom: 12 }}>
+                  <img
+                    src={trainerProfile.photoUrl}
+                    alt={trainerProfile.displayName}
+                    style={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '2px solid var(--primary)',
+                    }}
+                  />
+                </div>
+              )}
+              <h3 style={{ textAlign: 'center', marginBottom: 4 }}>
+                {trainerProfile.displayName}
+              </h3>
+              {trainerProfile.specialization && (
+                <p
+                  style={{
+                    textAlign: 'center',
+                    color: 'var(--primary)',
+                    fontSize: 13,
+                    marginBottom: 8,
+                  }}
+                >
+                  {trainerProfile.specialization}
+                </p>
+              )}
+              {trainerProfile.bio && (
+                <p
+                  style={{
+                    color: 'var(--text-secondary)',
+                    fontSize: 14,
+                    textAlign: 'center',
+                  }}
+                >
+                  {trainerProfile.bio}
+                </p>
+              )}
+            </div>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
-}
+};

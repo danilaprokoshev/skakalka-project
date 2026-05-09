@@ -9,7 +9,7 @@ interface Props {
 
 const STEPS = [
   {
-    title: 'Добро пожаловать в Sage Studio',
+    title: 'Добро пожаловать в Puls',
     description: 'Твой персональный трекер привычек с поддержкой тренера. Отмечай прогресс каждый день.',
     icon: '✦',
   },

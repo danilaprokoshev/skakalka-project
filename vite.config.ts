@@ -27,7 +27,7 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+            urlPattern: /^https:\/\/.*\.supabase\.co\/(?!auth\/).*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'supabase-api-cache',
@@ -37,8 +37,8 @@ export default defineConfig({
         ],
       },
       manifest: {
-        name: 'Sage Studio',
-        short_name: 'Sage',
+        name: 'Puls',
+        short_name: 'Puls',
         description: 'Персональный трекер привычек с тренером',
         theme_color: '#0d0d0d',
         background_color: '#0d0d0d',
