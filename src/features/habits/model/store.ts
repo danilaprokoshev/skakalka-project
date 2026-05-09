@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { toDayKey } from '../../../lib/date';
 import { supabase } from '../../../lib/supabase';
 import { Habit, HabitCategory, HabitEntry, HabitStatus, Reminder } from './types';
+import { useProfileStore } from '../../profile/model/store';
 
 const ONBOARDING_KEY = 'sk-onboarding-done';
 
@@ -333,12 +334,14 @@ export const useHabitStore = create<HabitStoreState>()((set, get) => ({
 
   exportAllData: () => {
     const state = get();
+    const profile = useProfileStore.getState().profile;
     const data = {
-      version: 1,
+      version: 2,
       exportedAt: new Date().toISOString(),
       habits: state.habits,
       entries: state.entries,
       reminders: state.reminders,
+      profile,
     };
     return JSON.stringify(data, null, 2);
   },
@@ -347,7 +350,13 @@ export const useHabitStore = create<HabitStoreState>()((set, get) => ({
     const userId = get().userId;
     if (!userId) { throw new Error('Пользователь не авторизован'); }
 
-    let data: { version: number; habits: Habit[]; entries: HabitEntry[]; reminders: Reminder[] };
+    let data: {
+      version: number;
+      habits: Habit[];
+      entries: HabitEntry[];
+      reminders: Reminder[];
+      profile?: { firstName: string; lastName?: string; aboutMe?: string; biggestGoal?: string };
+    };
     try {
       data = JSON.parse(json);
     } catch {
@@ -381,6 +390,17 @@ export const useHabitStore = create<HabitStoreState>()((set, get) => ({
       await supabase.from('reminders').insert({
         user_id: userId, habit_id: r.habitId,
         enabled: r.enabled, time: r.time, days_of_week: r.daysOfWeek,
+      });
+    }
+
+    if (data.profile) {
+      await supabase.from('user_profiles').delete().eq('user_id', userId);
+      await useProfileStore.getState().upsertProfile({
+        userId,
+        firstName: data.profile.firstName,
+        lastName: data.profile.lastName,
+        aboutMe: data.profile.aboutMe,
+        biggestGoal: data.profile.biggestGoal,
       });
     }
 

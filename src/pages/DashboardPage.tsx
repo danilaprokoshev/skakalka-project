@@ -5,6 +5,7 @@ import { toDayKey } from '../lib/date';
 import { useHabitStore, useActiveHabits, useArchivedHabits, calculateCurrentStreak, calculateCompletionRate } from '../features/habits/model/store';
 import { HabitCategory, CATEGORIES, CATEGORY_LABELS } from '../features/habits/model/types';
 import { useAuth } from '../features/auth/ui/AuthProvider';
+import { useProfileStore } from '../features/profile/model/store';
 import { HabitForm } from '../features/habits/ui/HabitForm';
 import { DailyCheckin } from '../features/checkin/ui/DailyCheckin';
 import { CalendarWidget } from '../features/calendar/ui/CalendarWidget';
@@ -35,6 +36,7 @@ export function DashboardPage() {
   const clearInAppReminderQueue = useHabitStore((s) => s.clearInAppReminderQueue);
   const enqueueInAppReminder = useHabitStore((s) => s.enqueueInAppReminder);
   const onboardingDone = useHabitStore((s) => s.onboardingDone);
+  const profile = useProfileStore((s) => s.profile);
   const completeOnboarding = useHabitStore((s) => s.completeOnboarding);
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -61,7 +63,7 @@ export function DashboardPage() {
 
   const noHabits = activeHabits.length === 0 && archivedHabits.length === 0;
 
-  const firstHabitName = user?.email?.split('@')[0] ?? 'друг';
+  const firstHabitName = profile?.firstName || user?.email?.split('@')[0] || 'друг';
 
   useEffect(() => {
     if (onboardingDone) {

@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useAuth } from '../features/auth/ui/AuthProvider';
 import { useHabitStore } from '../features/habits/model/store';
 import { useWorkoutStore } from '../features/workouts/model/store';
+import { useProfileStore } from '../features/profile/model/store';
 
 export const AuthGuard = (): JSX.Element => {
   const { user, loading } = useAuth();
@@ -16,19 +17,25 @@ export const AuthGuard = (): JSX.Element => {
   const clearWorkouts = useWorkoutStore((s) => s.clearWorkouts);
   const workoutError = useWorkoutStore((s) => s.loadError);
 
+  const loadProfile = useProfileStore((s) => s.loadProfile);
+  const clearProfile = useProfileStore((s) => s.clearProfile);
+  const profileError = useProfileStore((s) => s.loadError);
+
   useEffect(() => {
     if (user && user.id !== storedUserId) {
       loadUserData(user.id);
       loadTrainerProfile(user.id);
       loadWorkouts(user.id);
+      loadProfile(user.id);
     }
     if (!user && storedUserId) {
       clearData();
       clearWorkouts();
+      clearProfile();
     }
-  }, [user, storedUserId, loadUserData, clearData, loadTrainerProfile, loadWorkouts, clearWorkouts]);
+  }, [user, storedUserId, loadUserData, clearData, loadTrainerProfile, loadWorkouts, clearWorkouts, loadProfile, clearProfile]);
 
-  const loadError = habitError || workoutError;
+  const loadError = habitError || workoutError || profileError;
 
   if (loading) {
     return (
@@ -54,6 +61,7 @@ export const AuthGuard = (): JSX.Element => {
                 loadUserData(user.id);
                 loadTrainerProfile(user.id);
                 loadWorkouts(user.id);
+                loadProfile(user.id);
               }
             }}
           >

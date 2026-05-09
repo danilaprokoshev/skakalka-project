@@ -42,3 +42,13 @@ export interface Reminder {
   time: string;
   daysOfWeek: number[];
 }
+
+export interface UserProfile {
+  id: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  aboutMe: string;
+  biggestGoal: string;
+  createdAt: string;
+}

@@ -4,6 +4,7 @@ import { requestNotificationPermission, supportsNotifications } from '../feature
 import { useActiveHabits, useHabitStore } from '../features/habits/model/store';
 import { useWorkoutStore } from '../features/workouts/model/store';
 import { useAuth } from '../features/auth/ui/AuthProvider';
+import { useProfileStore } from '../features/profile/model/store';
 import { useTheme } from '../lib/theme';
 import { usePwaInstall } from '../lib/pwa';
 
@@ -36,6 +37,47 @@ export const SettingsPage = (): JSX.Element => {
     photoUrl: trainerProfile?.photoUrl ?? '',
   });
   const [profileExpanded, setProfileExpanded] = useState(false);
+
+  const profile = useProfileStore((s) => s.profile);
+  const upsertProfile = useProfileStore((s) => s.upsertProfile);
+
+  const [userProfileForm, setUserProfileForm] = useState({
+    firstName: profile?.firstName ?? '',
+    lastName: profile?.lastName ?? '',
+    aboutMe: profile?.aboutMe ?? '',
+    biggestGoal: profile?.biggestGoal ?? '',
+  });
+  const [userProfileEditing, setUserProfileEditing] = useState(false);
+  const [profileNameError, setProfileNameError] = useState('');
+
+  const syncUserProfileForm = () => {
+    const p = useProfileStore.getState().profile;
+    setUserProfileForm({
+      firstName: p?.firstName ?? '',
+      lastName: p?.lastName ?? '',
+      aboutMe: p?.aboutMe ?? '',
+      biggestGoal: p?.biggestGoal ?? '',
+    });
+    setProfileNameError('');
+  };
+
+  const handleSaveUserProfile = async () => {
+    const firstName = userProfileForm.firstName.trim();
+    if (!firstName) {
+      setProfileNameError('Имя обязательно для заполнения');
+      return;
+    }
+    if (!user) return;
+    await upsertProfile({
+      userId: user.id,
+      firstName,
+      lastName: userProfileForm.lastName.trim() || undefined,
+      aboutMe: userProfileForm.aboutMe.trim() || undefined,
+      biggestGoal: userProfileForm.biggestGoal.trim() || undefined,
+    });
+    setUserProfileEditing(false);
+    setProfileNameError('');
+  };
 
   const syncProfileForm = () => {
     const p = useWorkoutStore.getState().trainerProfile;
@@ -75,6 +117,124 @@ export const SettingsPage = (): JSX.Element => {
   return (
     <div className="stack-lg">
       <h2>Настройки</h2>
+
+      {/* Profile */}
+      <div className="settings-section">
+        <h3 className="settings-section-title">Профиль</h3>
+
+        {userProfileEditing || !profile ? (
+          <div className="card">
+            <div className="form-group">
+              <label className="form-label">Имя *</label>
+              <input
+                className="form-input"
+                value={userProfileForm.firstName}
+                onChange={(e) => {
+                  setUserProfileForm((p) => ({ ...p, firstName: e.target.value }));
+                  if (profileNameError) setProfileNameError('');
+                }}
+                placeholder="Ваше имя"
+                maxLength={100}
+              />
+              {profileNameError && (
+                <span style={{ color: 'var(--danger)', fontSize: 12 }}>{profileNameError}</span>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Фамилия</label>
+              <input
+                className="form-input"
+                value={userProfileForm.lastName}
+                onChange={(e) =>
+                  setUserProfileForm((p) => ({ ...p, lastName: e.target.value }))
+                }
+                placeholder="Ваша фамилия"
+                maxLength={100}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">О себе</label>
+              <textarea
+                className="form-input"
+                rows={3}
+                value={userProfileForm.aboutMe}
+                onChange={(e) =>
+                  setUserProfileForm((p) => ({ ...p, aboutMe: e.target.value }))
+                }
+                placeholder="Расскажите о себе..."
+                maxLength={500}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Самая большая цель</label>
+              <textarea
+                className="form-input"
+                rows={3}
+                value={userProfileForm.biggestGoal}
+                onChange={(e) =>
+                  setUserProfileForm((p) => ({ ...p, biggestGoal: e.target.value }))
+                }
+                placeholder="Ваша главная цель..."
+                maxLength={500}
+              />
+            </div>
+
+            <div className="button-row">
+              <button className="btn btn-primary" onClick={handleSaveUserProfile}>
+                Сохранить
+              </button>
+              {profile && (
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    syncUserProfileForm();
+                    setUserProfileEditing(false);
+                  }}
+                >
+                  Отмена
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <strong style={{ fontSize: 16 }}>{profile.firstName} {profile.lastName}</strong>
+              <button
+                className="btn btn-ghost"
+                onClick={() => {
+                  syncUserProfileForm();
+                  setUserProfileEditing(true);
+                }}
+              >
+                Редактировать
+              </button>
+            </div>
+            {profile.aboutMe ? (
+              <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 8 }}>
+                {profile.aboutMe}
+              </p>
+            ) : (
+              <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 8 }}>
+                О себе не указано
+              </p>
+            )}
+            {profile.biggestGoal ? (
+              <div>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Цель:</span>
+                <p style={{ fontSize: 14, marginTop: 2 }}>{profile.biggestGoal}</p>
+              </div>
+            ) : (
+              <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
+                Цель не указана
+              </p>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Account */}
       <div className="settings-section">
