@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useWorkoutStore } from '../features/workouts/model/store';
 import { Workout, WorkoutDifficulty } from '../features/workouts/model/types';
 import { parseVideoUrl } from '../features/workouts/model/video';
+import { useHabitStore } from '../features/habits/model/store';
 
 const DIFFICULTY_LABELS: Record<WorkoutDifficulty, string> = {
   beginner: 'Начинающий',
@@ -31,6 +32,9 @@ export function WorkoutDetailPage() {
     const stored = [...workouts, ...publicWorkouts].find((w) => w.id === workoutId);
     return stored ?? directWorkout;
   }, [workouts, publicWorkouts, workoutId, directWorkout]);
+
+  const userId = useHabitStore((s) => s.userId);
+  const isOwner = !!userId && workout?.trainerId === userId;
 
   useEffect(() => {
     if (!workoutId) return;
@@ -154,13 +158,15 @@ export function WorkoutDetailPage() {
           </p>
         )}
 
-        <button
-          className={`btn ${completed ? 'btn-secondary' : 'btn-primary'}`}
-          onClick={() => setCompleted((prev) => !prev)}
-          style={{ width: '100%' }}
-        >
-          {completed ? '✓ Выполнено' : 'Отметить как выполненную'}
-        </button>
+        {!isOwner && (
+          <button
+            className={`btn ${completed ? 'btn-secondary' : 'btn-primary'}`}
+            onClick={() => setCompleted((prev) => !prev)}
+            style={{ width: '100%' }}
+          >
+            {completed ? '✓ Выполнено' : 'Отметить как выполненную'}
+          </button>
+        )}
       </div>
     </div>
   );
