@@ -28,7 +28,6 @@ export function WorkoutsPage() {
   const trainerProfile = useWorkoutStore((s) => s.trainerProfile);
   const workouts = useWorkoutStore((s) => s.workouts);
   const publicWorkouts = useWorkoutStore((s) => s.publicWorkouts);
-  const loadWorkouts = useWorkoutStore((s) => s.loadWorkouts);
   const loadPublicWorkouts = useWorkoutStore((s) => s.loadPublicWorkouts);
   const createWorkout = useWorkoutStore((s) => s.createWorkout);
   const updateWorkout = useWorkoutStore((s) => s.updateWorkout);
@@ -52,12 +51,11 @@ export function WorkoutsPage() {
   });
 
   useEffect(() => {
-    if (isTrainer && user) {
-      loadWorkouts(user.id);
-    } else {
+    if (!user?.id) return;
+    if (!isTrainer) {
       loadPublicWorkouts();
     }
-  }, [isTrainer, user, loadWorkouts, loadPublicWorkouts]);
+  }, [isTrainer, user?.id, loadPublicWorkouts]);
 
   const resetForm = useCallback(() => {
     setForm({
