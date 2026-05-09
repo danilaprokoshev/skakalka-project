@@ -4,3 +4,5 @@ dist
 worktrees
 .env
 .vercel
+.superpowers
+tsconfig.node.tsbuildinfo
