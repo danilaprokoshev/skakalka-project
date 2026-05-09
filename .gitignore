@@ -5,4 +5,5 @@ worktrees
 .env
 .vercel
 .superpowers
-tsconfig.node.tsbuildinfo
+*.tsbuildinfo
+.env*.local
