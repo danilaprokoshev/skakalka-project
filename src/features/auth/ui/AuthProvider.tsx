@@ -18,16 +18,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
       setLoading(false);
     });
 
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.subscription.unsubscribe();
+    return () => authListener.subscription.unsubscribe();
   }, []);
 
   const value = useMemo<AuthContextValue>(
