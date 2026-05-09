@@ -152,7 +152,12 @@ export function WorkoutsPage() {
         ) : (
           <div className="workout-grid">
             {workouts.map((w) => (
-              <div key={w.id} className={`workout-card-placeholder ${!w.isPublished ? 'workout-unpublished' : ''}`}>
+              <Link
+                key={w.id}
+                to={`/workouts/${w.id}`}
+                className={`workout-card-placeholder ${!w.isPublished ? 'workout-unpublished' : ''}`}
+                style={{ textDecoration: 'none', display: 'block' }}
+              >
                 <div className="workout-thumb-placeholder">
                   {w.thumbnailUrl ? (
                     <img src={w.thumbnailUrl} alt={w.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -180,15 +185,25 @@ export function WorkoutsPage() {
                     )}
                   </div>
                   <div className="button-row" style={{ gap: 4 }}>
-                    <button className="btn btn-ghost" onClick={() => handleEdit(w)} style={{ fontSize: 12, padding: '4px 10px' }}>
+                    <button
+                      className="btn btn-ghost"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEdit(w); }}
+                      style={{ fontSize: 12, padding: '4px 10px' }}
+                    >
                       ✏️
                     </button>
-                    <button className="btn btn-ghost" onClick={() => toggleWorkoutPublished(w.id)} style={{ fontSize: 12, padding: '4px 10px' }}>
+                    <button
+                      className="btn btn-ghost"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleWorkoutPublished(w.id); }}
+                      style={{ fontSize: 12, padding: '4px 10px' }}
+                    >
                       {w.isPublished ? '👁' : '📢'}
                     </button>
                     <button
                       className="btn btn-ghost"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         if (confirm(`Удалить «${w.title}»?`)) deleteWorkout(w.id);
                       }}
                       style={{ fontSize: 12, padding: '4px 10px', color: 'var(--danger)' }}
@@ -197,7 +212,7 @@ export function WorkoutsPage() {
                     </button>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
