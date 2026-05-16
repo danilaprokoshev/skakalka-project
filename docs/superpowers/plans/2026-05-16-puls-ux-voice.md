@@ -1,10 +1,10 @@
-# Puls Wave 2 — UX Voice & Copywriting Implementation Plan
+# Puls Wave 2 — Голос тренера: копирайт Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Привести тексты в Puls в соответствие с манифестом «Мы делаем каждое утро» — клубный тон, «голос тренера» в ключевых точках.
+**Goal:** Заменить безличные UI-тексты на короткие живые фразы с голосом тренера — так, чтобы приложение звучало как человек, а не как продукт.
 
-**Architecture:** Только текстовые изменения в 5 файлах. Никакой новой логики, новых компонентов, новых хуков. Изменения изолированы: каждый файл правится и коммитится отдельно.
+**Architecture:** Только текстовые изменения в 4 файлах. Никакой новой логики, новых компонентов, новых хуков. Каждый файл правится и коммитится отдельно.
 
 **Tech Stack:** React 18, TypeScript, Vite. Тестовый фреймворк отсутствует. Верификация: `npx tsc -b --noEmit` (тайпчек) + визуальная проверка в браузере (`npm run dev`).
 
@@ -17,8 +17,6 @@
 | `src/features/gamification/ui/OnboardingWizard.tsx` | Тексты 4 шагов онбординга |
 | `src/pages/DashboardPage.tsx` | Empty states, тост первого чек-ина, subtitle hero |
 | `src/features/gamification/model/badges.ts` | Описания всех 6 бейджей |
-| `src/pages/LoginPage.tsx` | Подзаголовок страницы входа |
-| `src/pages/RegisterPage.tsx` | Подзаголовок страницы регистрации |
 | `src/pages/WorkoutsPage.tsx` | Клиентский empty state тренировок |
 
 ---
@@ -28,8 +26,6 @@
 **Files:**
 - Modify: `src/features/gamification/ui/OnboardingWizard.tsx:10-31`
 
-Текущий массив `STEPS` — безличный и описательный. Переходим на клубный тон: шаг 1 — «добро пожаловать в клуб», шаг 4 — «голос тренера».
-
 - [ ] **Step 1: Заменить массив `STEPS`**
 
 Найди в файле `src/features/gamification/ui/OnboardingWizard.tsx` строки 10–31 (объявление `const STEPS`) и замени целиком:
@@ -37,8 +33,8 @@
 ```typescript
 const STEPS = [
   {
-    title: 'Добро пожаловать в клуб',
-    description: 'Мы делаем каждое утро — привычки, тренировки и люди, которые встают вместе с тобой.',
+    title: 'Добро пожаловать в Puls',
+    description: 'Один чек-ин в день — и прогресс становится видимым.',
     icon: '✦',
   },
   {
@@ -52,8 +48,8 @@ const STEPS = [
     icon: '✓',
   },
   {
-    title: 'Готово. Увидимся утром.',
-    description: 'Первый шаг — это не мелочь. Заходи каждый день и отмечай. Мы рядом.',
+    title: 'Готово.',
+    description: 'Первый шаг — это не мелочь. Заходи каждый день и отмечай.',
     icon: '🚀',
   },
 ];
@@ -73,13 +69,13 @@ npx tsc -b --noEmit
 npm run dev
 ```
 
-Открыть `http://localhost:5173`, войти в аккаунт у которого `sk-onboarding-done` не установлен (или сбросить в DevTools → Application → Local Storage → удалить `sk-onboarding-done`). Проверить, что 4 шага отображают новые тексты.
+Открыть `http://localhost:5173`. Сбросить онбординг: DevTools → Application → Local Storage → удалить `sk-onboarding-done`. Перезагрузить страницу, пройти все 4 шага и проверить новые тексты.
 
 - [ ] **Step 4: Коммит**
 
 ```bash
 git add src/features/gamification/ui/OnboardingWizard.tsx
-git commit -m "copy: update onboarding steps to club tone"
+git commit -m "copy: update onboarding steps to trainer voice"
 ```
 
 ---
@@ -87,9 +83,7 @@ git commit -m "copy: update onboarding steps to club tone"
 ## Task 2: Dashboard — empty states и тост первого чек-ина
 
 **Files:**
-- Modify: `src/pages/DashboardPage.tsx` (строки 125, 163–170, 248–254, 334)
-
-Четыре точки: тост после первого чек-ина, subtitle в hero при отсутствии привычек, главный empty state, подсказка «ещё не отметил».
+- Modify: `src/pages/DashboardPage.tsx` (строки 125, 169, 248–254, 334)
 
 - [ ] **Step 1: Тост первого чек-ина (строка 125)**
 
@@ -132,7 +126,7 @@ showToast('Первый шаг — это не мелочь. Увидимся з
 ```tsx
           <h2 className="empty-title">Начни с одного</h2>
           <p className="empty-text">
-            Одна привычка достаточно, чтобы начать. Клуб уже делает своё.
+            Одна привычка достаточно, чтобы начать.
           </p>
           <button className="btn btn-primary" onClick={() => setShowAddForm(true)}>
             + Добавить привычку
@@ -148,7 +142,7 @@ showToast('Первый шаг — это не мелочь. Увидимся з
 
 Замени на:
 ```typescript
-          Ещё есть время. Мы делаем каждое утро.
+          Ещё есть время.
 ```
 
 - [ ] **Step 5: Тайпчек**
@@ -163,8 +157,8 @@ npx tsc -b --noEmit
 
 Открыть `http://localhost:5173`. Проверить три состояния:
 1. Нет привычек → empty state «Начни с одного».
-2. Привычки есть, сегодня не отмечено → подсказка «Ещё есть время…».
-3. Сделать первый чек-ин в чистом аккаунте → тост «Первый шаг — это не мелочь…».
+2. Привычки есть, сегодня не отмечено → «Ещё есть время.»
+3. Сделать первый чек-ин в чистом аккаунте → тост «Первый шаг — это не мелочь. Увидимся завтра.»
 
 - [ ] **Step 7: Коммит**
 
@@ -175,12 +169,12 @@ git commit -m "copy: update dashboard empty states and first checkin toast"
 
 ---
 
-## Task 3: Бейджи — описания под клубный тон
+## Task 3: Бейджи — описания под голос тренера
 
 **Files:**
 - Modify: `src/features/gamification/model/badges.ts:10-16`
 
-Бейджи сейчас описывают условие разблокировки («7 дней подряд»). Переходим на «голос тренера» — короткое, честное, без пафоса. Иконки и цвета не трогаем. Бейдж «Коллекция» переименовываем в «Системный».
+Бейджи сейчас описывают условие разблокировки («7 дней подряд»). Переходим на короткие живые фразы без технических формулировок. Иконки и цвета не трогаем.
 
 - [ ] **Step 1: Заменить массив `BADGES`**
 
@@ -188,11 +182,11 @@ git commit -m "copy: update dashboard empty states and first checkin toast"
 
 ```typescript
 export const BADGES: Badge[] = [
-  { id: 'first-habit', name: 'Первый шаг', description: 'Ты в клубе. Начало положено.', icon: '✦', color: '#9aab8f' },
-  { id: 'streak-7', name: 'Неделя', description: '7 утренних чек-инов подряд. Большинство сдаётся раньше.', icon: '🌱', color: '#9aab8f' },
+  { id: 'first-habit', name: 'Первый шаг', description: 'Ты начал. Это уже много.', icon: '✦', color: '#9aab8f' },
+  { id: 'streak-7', name: 'Неделя', description: '7 дней подряд. Большинство сдаётся раньше.', icon: '🌱', color: '#9aab8f' },
   { id: 'streak-30', name: 'Месяц', description: '30 дней без паузы. Это уже часть тебя.', icon: '🔥', color: '#e8a850' },
   { id: 'streak-100', name: 'Сотня', description: '100 дней. Ты не человек — ты ритм.', icon: '💯', color: '#c77dff' },
-  { id: 'five-habits', name: 'Системный', description: '5 привычек в режиме. Ты строишь систему.', icon: '📚', color: '#9aab8f' },
+  { id: 'five-habits', name: 'Система', description: '5 привычек в режиме. Ты строишь систему.', icon: '📚', color: '#9aab8f' },
   { id: 'perfect-week', name: 'Идеальная неделя', description: '7 из 7. Без пропусков, без оправданий.', icon: '⭐', color: '#e8a850' },
 ];
 ```
@@ -207,76 +201,21 @@ npx tsc -b --noEmit
 
 - [ ] **Step 3: Визуальная проверка**
 
-Открыть `http://localhost:5173` → Dashboard. Навести на разблокированный бейдж — проверить tooltip с новым описанием. Если нет разблокированных бейджей, временно добавить id в localStorage: DevTools → Application → Local Storage → `sk-badges` → `["first-habit"]`.
+Открыть `http://localhost:5173` → Dashboard. Навести на разблокированный бейдж — проверить tooltip с новым описанием. Если нет разблокированных бейджей: DevTools → Application → Local Storage → `sk-badges` → установить значение `["first-habit"]`. Перезагрузить и навести.
 
 - [ ] **Step 4: Коммит**
 
 ```bash
 git add src/features/gamification/model/badges.ts
-git commit -m "copy: rewrite badge descriptions to club voice"
+git commit -m "copy: rewrite badge descriptions to trainer voice"
 ```
 
 ---
 
-## Task 4: Login и Register — подзаголовки
-
-**Files:**
-- Modify: `src/pages/LoginPage.tsx:38`
-- Modify: `src/pages/RegisterPage.tsx:49`
-
-Подзаголовки сейчас нейтральные («Войдите, чтобы продолжить» / «Создайте аккаунт»). Добавляем клубный оттенок.
-
-- [ ] **Step 1: LoginPage — подзаголовок (строка 38)**
-
-Найди:
-```tsx
-        <p className="auth-subtitle">Войдите, чтобы продолжить</p>
-```
-
-Замени на:
-```tsx
-        <p className="auth-subtitle">Войди в клуб</p>
-```
-
-- [ ] **Step 2: RegisterPage — подзаголовок (строка 49)**
-
-Найди:
-```tsx
-        <p className="auth-subtitle">Создайте аккаунт</p>
-```
-
-Замени на:
-```tsx
-        <p className="auth-subtitle">Присоединись к клубу</p>
-```
-
-- [ ] **Step 3: Тайпчек**
-
-```bash
-npx tsc -b --noEmit
-```
-
-Ожидание: 0 ошибок.
-
-- [ ] **Step 4: Визуальная проверка**
-
-Открыть `http://localhost:5173/login` и `http://localhost:5173/register` (в режиме инкогнито или разлогиненным). Проверить новые подзаголовки под брендом «Puls».
-
-- [ ] **Step 5: Коммит**
-
-```bash
-git add src/pages/LoginPage.tsx src/pages/RegisterPage.tsx
-git commit -m "copy: update login/register subtitles to club tone"
-```
-
----
-
-## Task 5: Workouts — клиентский empty state
+## Task 4: Workouts — клиентский empty state
 
 **Files:**
 - Modify: `src/pages/WorkoutsPage.tsx:228-234`
-
-Текущий текст — пассивный («следи за анонсами»). Перенаправляем внимание на привычки как на то, чем можно заниматься прямо сейчас.
 
 - [ ] **Step 1: Заменить клиентский empty state**
 
@@ -292,7 +231,7 @@ git commit -m "copy: update login/register subtitles to club tone"
 ```tsx
           <h3 className="empty-title">Тренировки скоро появятся</h3>
           <p className="empty-text">
-            Пока работай над привычками — тренер скоро добавит контент.
+            Пока работай над привычками — это тоже тренировка.
 ```
 
 - [ ] **Step 2: Тайпчек**
@@ -305,7 +244,7 @@ npx tsc -b --noEmit
 
 - [ ] **Step 3: Визуальная проверка**
 
-Открыть `http://localhost:5173/workouts` под клиентским аккаунтом (без флага `isTrainer`). Убедиться что отображается новый empty state.
+Открыть `http://localhost:5173/workouts` под клиентским аккаунтом (без флага `isTrainer`). Убедиться, что отображается новый empty state.
 
 - [ ] **Step 4: Коммит**
 
@@ -318,13 +257,12 @@ git commit -m "copy: update workouts client empty state"
 
 ## Самопроверка плана
 
-**Покрытие спека:**
-- «Добро пожаловать в клуб» → Task 1, шаг 1 ✅
-- «Голос тренера» в ключевых точках → Task 1 (онбординг шаг 4) + Task 2 (тост) ✅
-- Empty states под манифест → Task 2 ✅
-- Бейджи под клубный тон → Task 3 ✅
-- Логин/регистрация → Task 4 ✅
-- Workouts empty state → Task 5 ✅
+**Покрытие:**
+- Голос тренера в онбординге → Task 1 ✅
+- Голос тренера в ключевых точках dashboard → Task 2 ✅
+- Бейджи с живыми описаниями → Task 3 ✅
+- Workouts empty state → Task 4 ✅
+- Клубные отсылки: отсутствуют ✅
 
 **Placeholder-сканирование:** нет TBD, нет TODO, каждый шаг содержит конкретный код.
 
