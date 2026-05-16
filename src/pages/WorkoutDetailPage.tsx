@@ -106,7 +106,7 @@ export function WorkoutDetailPage() {
       </button>
 
       <div className="card" style={{ overflow: 'hidden', padding: 0 }}>
-        {videoInfo.type === 'youtube' || videoInfo.type === 'vimeo' ? (
+        {videoInfo.type === 'youtube' || videoInfo.type === 'vimeo' || videoInfo.type === 'rutube' ? (
           <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
             <iframe
               src={videoInfo.embedUrl}
@@ -118,7 +118,7 @@ export function WorkoutDetailPage() {
                 height: '100%',
                 border: 0,
               }}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
               allowFullScreen
               title={workout.title}
             />
