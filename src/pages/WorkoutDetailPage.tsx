@@ -106,7 +106,7 @@ export function WorkoutDetailPage() {
       </button>
 
       <div className="card" style={{ overflow: 'hidden', padding: 0 }}>
-        {videoInfo.type === 'youtube' || videoInfo.type === 'vimeo' ? (
+        {videoInfo.type === 'youtube' || videoInfo.type === 'vimeo' || videoInfo.type === 'rutube' ? (
           <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
             <iframe
               src={videoInfo.embedUrl}

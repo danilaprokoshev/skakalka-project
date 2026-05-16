@@ -334,7 +334,7 @@ function WorkoutForm({ form, onChange, onSubmit, onCancel, isEditing }: WorkoutF
           className="form-input"
           value={form.videoUrl}
           onChange={(e) => onChange({ ...form, videoUrl: e.target.value })}
-          placeholder="https://youtube.com/watch?v=... или https://vimeo.com/..."
+          placeholder="https://rutube.ru/video/... или https://youtube.com/watch?v=..."
         />
       </div>
 
