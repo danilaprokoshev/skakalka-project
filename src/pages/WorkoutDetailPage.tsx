@@ -118,7 +118,7 @@ export function WorkoutDetailPage() {
                 height: '100%',
                 border: 0,
               }}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
               allowFullScreen
               title={workout.title}
             />

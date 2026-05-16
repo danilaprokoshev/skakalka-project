@@ -9,7 +9,7 @@ interface VideoInfo {
 export function parseVideoUrl(url: string): VideoInfo {
   if (!url) return { type: 'unknown' };
 
-  const rutubeRegex = /rutube\.ru\/(?:video\/(?:private\/)?|play\/embed\/)([a-f0-9]{32})/i;
+  const rutubeRegex = /^https?:\/\/(?:www\.)?rutube\.ru\/(?:video\/(?:private\/)?|play\/embed\/)([a-f0-9]{32})/i;
   const rutubeMatch = url.match(rutubeRegex);
   if (rutubeMatch) {
     const id = rutubeMatch[1];
